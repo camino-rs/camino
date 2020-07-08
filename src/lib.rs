@@ -1,9 +1,11 @@
+use std::borrow::Borrow;
 use std::fmt;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::ops::Deref;
 use std::path::*;
 
 // NB: Internal PathBuf must only contain utf8 data
+#[derive(Clone, Default, Hash)]
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
 
@@ -37,7 +39,11 @@ impl Utf8PathBuf {
     }
 
     pub fn into_string(self) -> String {
-        self.0.into_os_string().into_string().unwrap()
+        self.into_os_string().into_string().unwrap()
+    }
+
+    pub fn into_os_string(self) -> OsString {
+        self.0.into_os_string()
     }
 
     pub fn into_boxed_path(self) -> Box<Utf8Path> {
@@ -75,6 +81,7 @@ impl Deref for Utf8PathBuf {
 
 // NB: Internal Path must only contain utf8 data
 #[repr(transparent)]
+#[derive(Hash)]
 pub struct Utf8Path(Path);
 
 impl Utf8Path {
@@ -83,7 +90,11 @@ impl Utf8Path {
     }
 
     pub fn as_str(&self) -> &str {
-        unsafe { assert_utf8(self.0.as_os_str()) }
+        unsafe { assert_utf8(self.as_os_str()) }
+    }
+
+    pub fn as_os_str(&self) -> &OsStr {
+        self.0.as_os_str()
     }
 
     pub fn to_path_buf(&self) -> Utf8PathBuf {
@@ -180,7 +191,7 @@ impl AsRef<Utf8Path> for Utf8Path {
 
 impl AsRef<Utf8Path> for Utf8PathBuf {
     fn as_ref(&self) -> &Utf8Path {
-        &**self
+        self.as_path()
     }
 }
 
@@ -205,6 +216,24 @@ impl AsRef<str> for Utf8Path {
 impl AsRef<str> for Utf8PathBuf {
     fn as_ref(&self) -> &str {
         self.as_str()
+    }
+}
+
+impl AsRef<OsStr> for Utf8Path {
+    fn as_ref(&self) -> &OsStr {
+        self.as_os_str()
+    }
+}
+
+impl AsRef<OsStr> for Utf8PathBuf {
+    fn as_ref(&self) -> &OsStr {
+        self.as_os_str()
+    }
+}
+
+impl Borrow<Utf8Path> for Utf8PathBuf {
+    fn borrow(&self) -> &Utf8Path {
+        self.as_path()
     }
 }
 
