@@ -101,6 +101,14 @@ impl fmt::Display for Utf8PathBuf {
     }
 }
 
+impl<P: AsRef<Utf8Path>> Extend<P> for Utf8PathBuf {
+    fn extend<I: IntoIterator<Item = P>>(&mut self, iter: I) {
+        for path in iter {
+            self.push(path);
+        }
+    }
+}
+
 // NB: Internal Path must only contain utf8 data
 #[repr(transparent)]
 #[derive(Hash)]
@@ -151,16 +159,16 @@ impl Utf8Path {
         self.0.file_name().map(|s| unsafe { assert_utf8(s) })
     }
 
-    pub fn strip_prefix(&self, base: impl AsRef<Utf8Path>) -> Result<&Utf8Path, StripPrefixError> {
-        self.0.strip_prefix(&base.as_ref().0).map(|path| unsafe { Utf8Path::assert_utf8(path) })
+    pub fn strip_prefix(&self, base: impl AsRef<Path>) -> Result<&Utf8Path, StripPrefixError> {
+        self.0.strip_prefix(base).map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
-    pub fn starts_with(&self, base: impl AsRef<Utf8Path>) -> bool {
-        self.0.starts_with(&base.as_ref().0)
+    pub fn starts_with(&self, base: impl AsRef<Path>) -> bool {
+        self.0.starts_with(base)
     }
 
-    pub fn ends_with(&self, base: impl AsRef<Utf8Path>) -> bool {
-        self.0.ends_with(&base.as_ref().0)
+    pub fn ends_with(&self, base: impl AsRef<Path>) -> bool {
+        self.0.ends_with(base)
     }
 
     pub fn file_stem(&self) -> Option<&str> {
@@ -173,6 +181,10 @@ impl Utf8Path {
 
     pub fn join(&self, path: impl AsRef<Utf8Path>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.join(&path.as_ref().0))
+    }
+
+    pub fn join_os(&self, path: impl AsRef<Path>) -> PathBuf {
+        self.0.join(path)
     }
 
     pub fn with_file_name(&self, file_name: impl AsRef<str>) -> Utf8PathBuf {
@@ -381,6 +393,12 @@ impl From<Utf8PathBuf> for String {
     }
 }
 
+impl From<Utf8PathBuf> for PathBuf {
+    fn from(path: Utf8PathBuf) -> PathBuf {
+        path.0
+    }
+}
+
 impl AsRef<Utf8Path> for Utf8Path {
     fn as_ref(&self) -> &Utf8Path {
         self
@@ -402,6 +420,18 @@ impl AsRef<Utf8Path> for str {
 impl AsRef<Utf8Path> for String {
     fn as_ref(&self) -> &Utf8Path {
         Utf8Path::new(self)
+    }
+}
+
+impl AsRef<Path> for Utf8Path {
+    fn as_ref(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl AsRef<Path> for Utf8PathBuf {
+    fn as_ref(&self) -> &Path {
+        &*self.0
     }
 }
 
