@@ -7,11 +7,69 @@ use std::path::*;
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
 
+impl Utf8PathBuf {
+    pub fn new() -> Utf8PathBuf {
+        Utf8PathBuf(PathBuf::new())
+    }
+
+    pub fn with_capacity(capacity: usize) -> Utf8PathBuf {
+        Utf8PathBuf(PathBuf::with_capacity(capacity))
+    }
+
+    pub fn as_path(&self) -> &Utf8Path {
+        unsafe { Utf8Path::from_path(&*self.0) }
+    }
+
+    pub fn push(&mut self, path: impl AsRef<Utf8Path>) {
+        self.0.push(&path.as_ref().0)
+    }
+
+    pub fn pop(&mut self) -> bool {
+        self.0.pop()
+    }
+
+    pub fn set_file_name(&mut self, file_name: impl AsRef<str>) {
+        self.0.set_file_name(file_name.as_ref())
+    }
+
+    pub fn set_extension(&mut self, extension: impl AsRef<str>) -> bool {
+        self.0.set_extension(extension.as_ref())
+    }
+
+    pub fn into_string(self) -> String {
+        self.0.into_os_string().into_string().unwrap()
+    }
+
+    pub fn into_boxed_path(self) -> Box<Utf8Path> {
+        unsafe { Box::from_raw(Box::into_raw(self.0.into_boxed_path()) as *mut Utf8Path) }
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.0.capacity()
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear()
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional)
+    }
+
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.0.reserve_exact(additional)
+    }
+
+    pub fn shrink_to_fit(&mut self) {
+        self.0.shrink_to_fit()
+    }
+}
+
 impl Deref for Utf8PathBuf {
     type Target = Utf8Path;
 
     fn deref(&self) -> &Utf8Path {
-        unsafe { Utf8Path::from_path(&*self.0) }
+        self.as_path()
     }
 }
 
