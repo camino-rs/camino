@@ -87,6 +87,18 @@ impl Deref for Utf8PathBuf {
     }
 }
 
+impl fmt::Debug for Utf8PathBuf {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
+    }
+}
+
+impl fmt::Display for Utf8PathBuf {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self.as_str(), f)
+    }
+}
+
 // NB: Internal Path must only contain utf8 data
 #[repr(transparent)]
 #[derive(Hash)]
@@ -191,6 +203,12 @@ impl fmt::Display for Utf8Path {
     }
 }
 
+impl fmt::Debug for Utf8Path {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self.as_str(), f)
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(transparent)]
 pub struct Utf8Ancestors<'a>(Ancestors<'a>);
@@ -236,6 +254,12 @@ impl<'a> DoubleEndedIterator for Utf8Components<'a> {
     }
 }
 
+impl<'a> fmt::Debug for Utf8Components<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Utf8Component<'a> {
     Prefix(Utf8PrefixComponent<'a>),
@@ -271,6 +295,12 @@ impl<'a> Utf8Component<'a> {
     }
 }
 
+impl<'a> fmt::Debug for Utf8Component<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self.as_os_str(), f)
+    }
+}
+
 #[repr(transparent)]
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Utf8PrefixComponent<'a>(PrefixComponent<'a>);
@@ -284,6 +314,12 @@ impl<'a> Utf8PrefixComponent<'a> {
 
     pub fn as_os_str(&self) -> &'a OsStr {
         self.0.as_os_str()
+    }
+}
+
+impl<'a> fmt::Debug for Utf8PrefixComponent<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
     }
 }
 
