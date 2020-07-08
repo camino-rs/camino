@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 use std::fmt;
 use std::ffi::{OsStr, OsString};
+use std::iter::FusedIterator;
 use std::ops::Deref;
 use std::path::*;
 
@@ -179,7 +180,25 @@ impl fmt::Display for Utf8Path {
     }
 }
 
+#[derive(Copy, Clone)]
+#[repr(transparent)]
 pub struct Utf8Ancestors<'a>(Ancestors<'a>);
+
+impl<'a> fmt::Debug for Utf8Ancestors<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl<'a> Iterator for Utf8Ancestors<'a> {
+    type Item = &'a Utf8Path;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|path| unsafe { Utf8Path::from_path(path) })
+    }
+}
+
+impl<'a> FusedIterator for Utf8Ancestors<'a> { }
 
 pub struct Utf8Components<'a>(Components<'a>);
 
