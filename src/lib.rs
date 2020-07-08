@@ -1,10 +1,19 @@
 use std::fmt;
 use std::ffi::OsStr;
+use std::ops::Deref;
 use std::path::*;
 
 // NB: Internal PathBuf must only contain utf8 data
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
+
+impl Deref for Utf8PathBuf {
+    type Target = Utf8Path;
+
+    fn deref(&self) -> &Utf8Path {
+        unsafe { Utf8Path::from_path(&*self.0) }
+    }
+}
 
 // NB: Internal Path must only contain utf8 data
 #[repr(transparent)]
@@ -104,6 +113,42 @@ impl fmt::Display for Utf8Path {
 pub struct Utf8Ancestors<'a>(Ancestors<'a>);
 
 pub struct Utf8Components<'a>(Components<'a>);
+
+impl AsRef<Utf8Path> for Utf8Path {
+    fn as_ref(&self) -> &Utf8Path {
+        self
+    }
+}
+
+impl AsRef<Utf8Path> for Utf8PathBuf {
+    fn as_ref(&self) -> &Utf8Path {
+        &**self
+    }
+}
+
+impl AsRef<Utf8Path> for str {
+    fn as_ref(&self) -> &Utf8Path {
+        Utf8Path::new(self)
+    }
+}
+
+impl AsRef<Utf8Path> for String {
+    fn as_ref(&self) -> &Utf8Path {
+        Utf8Path::new(self)
+    }
+}
+
+impl AsRef<str> for Utf8Path {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl AsRef<str> for Utf8PathBuf {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
 
 // invariant: OsStr must be guaranteed to be utf8 data
 unsafe fn assert_utf8(string: &OsStr) -> &str {
