@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 use std::ffi::{OsStr, OsString};
 use std::fmt;
 use std::fs;
@@ -6,6 +6,8 @@ use std::io;
 use std::iter::FusedIterator;
 use std::ops::Deref;
 use std::path::*;
+use std::rc::Rc;
+use std::sync::Arc;
 
 // NB: Internal PathBuf must only contain utf8 data
 #[derive(Clone, Default, Hash)]
@@ -387,6 +389,18 @@ impl From<String> for Utf8PathBuf {
     }
 }
 
+impl From<Box<Utf8Path>> for Utf8PathBuf {
+    fn from(path: Box<Utf8Path>) -> Utf8PathBuf {
+        path.into_path_buf()
+    }
+}
+
+impl<'a> From<Cow<'a, Utf8Path>> for Utf8PathBuf {
+    fn from(path: Cow<'a, Utf8Path>) -> Utf8PathBuf {
+        path.into_owned()
+    }
+}
+
 impl From<Utf8PathBuf> for String {
     fn from(path: Utf8PathBuf) -> String {
         path.into_string()
@@ -396,6 +410,32 @@ impl From<Utf8PathBuf> for String {
 impl From<Utf8PathBuf> for PathBuf {
     fn from(path: Utf8PathBuf) -> PathBuf {
         path.0
+    }
+}
+
+impl From<Utf8PathBuf> for OsString {
+    fn from(path: Utf8PathBuf) -> OsString {
+        path.into_os_string()
+    }
+}
+
+impl<'a> From<Utf8PathBuf> for Cow<'a, Utf8Path> {
+    fn from(path: Utf8PathBuf) -> Cow<'a, Utf8Path> {
+        Cow::Owned(path)
+    }
+}
+
+impl From<Utf8PathBuf> for Arc<Utf8Path> {
+    fn from(path: Utf8PathBuf) -> Arc<Utf8Path> {
+        let arc: Arc<Path> = Arc::from(path.0);
+        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const Utf8Path) }
+    }
+}
+
+impl From<Utf8PathBuf> for Rc<Utf8Path> {
+    fn from(path: Utf8PathBuf) -> Rc<Utf8Path> {
+        let rc: Rc<Path> = Rc::from(path.0);
+        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const Utf8Path) }
     }
 }
 
@@ -462,6 +502,14 @@ impl AsRef<OsStr> for Utf8PathBuf {
 impl Borrow<Utf8Path> for Utf8PathBuf {
     fn borrow(&self) -> &Utf8Path {
         self.as_path()
+    }
+}
+
+impl ToOwned for Utf8Path {
+    type Owned = Utf8PathBuf;
+
+    fn to_owned(&self) -> Utf8PathBuf {
+        self.to_path_buf()
     }
 }
 
