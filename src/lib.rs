@@ -1,6 +1,8 @@
 use std::borrow::Borrow;
-use std::fmt;
 use std::ffi::{OsStr, OsString};
+use std::fmt;
+use std::fs;
+use std::io;
 use std::iter::FusedIterator;
 use std::ops::Deref;
 use std::path::*;
@@ -185,6 +187,38 @@ impl Utf8Path {
         Utf8Components(self.0.components())
     }
 
+    pub fn metadata(&self) -> io::Result<fs::Metadata> {
+        self.0.metadata()
+    }
+
+    pub fn symlink_metadata(&self) -> io::Result<fs::Metadata> {
+        self.0.symlink_metadata()
+    }
+
+    pub fn canonicalize(&self) -> io::Result<PathBuf> {
+        self.0.canonicalize()
+    }
+
+    pub fn read_link(&self) -> io::Result<PathBuf> {
+        self.0.read_link()
+    }
+
+    pub fn read_dir(&self) -> io::Result<fs::ReadDir> {
+        self.0.read_dir()
+    }
+
+    pub fn exists(&self) -> bool {
+        self.0.exists()
+    }
+
+    pub fn is_file(&self) -> bool {
+        self.0.is_file()
+    }
+
+    pub fn is_dir(&self) -> bool {
+        self.0.is_dir()
+    }
+
     pub fn into_path_buf(self: Box<Utf8Path>) -> Utf8PathBuf {
         unsafe {
             Utf8PathBuf(Box::from_raw(Box::into_raw(self) as *mut Path).into_path_buf())
@@ -301,6 +335,12 @@ impl<'a> fmt::Debug for Utf8Component<'a> {
     }
 }
 
+impl<'a> fmt::Display for Utf8Component<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self.as_str(), f)
+    }
+}
+
 #[repr(transparent)]
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Utf8PrefixComponent<'a>(PrefixComponent<'a>);
@@ -320,6 +360,12 @@ impl<'a> Utf8PrefixComponent<'a> {
 impl<'a> fmt::Debug for Utf8PrefixComponent<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl<'a> fmt::Display for Utf8PrefixComponent<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self.as_str(), f)
     }
 }
 
