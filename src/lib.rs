@@ -15,12 +15,19 @@ impl Utf8PathBuf {
         Utf8PathBuf(PathBuf::new())
     }
 
+    pub fn from_path_buf(path: PathBuf) -> Result<Utf8PathBuf, PathBuf> {
+        match path.into_os_string().into_string() {
+            Ok(string)      => Ok(Utf8PathBuf::from(string)),
+            Err(os_string)  => Err(PathBuf::from(os_string)),
+        }
+    }
+
     pub fn with_capacity(capacity: usize) -> Utf8PathBuf {
         Utf8PathBuf(PathBuf::with_capacity(capacity))
     }
 
     pub fn as_path(&self) -> &Utf8Path {
-        unsafe { Utf8Path::from_path(&*self.0) }
+        unsafe { Utf8Path::assert_utf8(&*self.0) }
     }
 
     pub fn push(&mut self, path: impl AsRef<Utf8Path>) {
@@ -87,7 +94,11 @@ pub struct Utf8Path(Path);
 
 impl Utf8Path {
     pub fn new(s: &(impl AsRef<str> + ?Sized)) -> &Utf8Path {
-        unsafe { Utf8Path::from_path(Path::new(s.as_ref())) }
+        unsafe { Utf8Path::assert_utf8(Path::new(s.as_ref())) }
+    }
+
+    pub fn from_path(path: &Path) -> Option<&Utf8Path> {
+        path.as_os_str().to_str().map(|s| Utf8Path::new(s))
     }
 
     pub fn as_str(&self) -> &str {
@@ -115,7 +126,7 @@ impl Utf8Path {
     }
 
     pub fn parent(&self) -> Option<&Utf8Path> {
-        self.0.parent().map(|path| unsafe { Utf8Path::from_path(path) })
+        self.0.parent().map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
     pub fn ancestors(&self) -> Utf8Ancestors<'_> {
@@ -127,7 +138,7 @@ impl Utf8Path {
     }
 
     pub fn strip_prefix(&self, base: impl AsRef<Utf8Path>) -> Result<&Utf8Path, StripPrefixError> {
-        self.0.strip_prefix(&base.as_ref().0).map(|path| unsafe { Utf8Path::from_path(path) })
+        self.0.strip_prefix(&base.as_ref().0).map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
     pub fn starts_with(&self, base: impl AsRef<Utf8Path>) -> bool {
@@ -169,7 +180,7 @@ impl Utf8Path {
     }
 
     // invariant: Path must be guaranteed to be utf-8 data
-    unsafe fn from_path(path: &Path) -> &Utf8Path {
+    unsafe fn assert_utf8(path: &Path) -> &Utf8Path {
         &*(path as *const Path as *const Utf8Path)
     }
 }
@@ -194,7 +205,7 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
     type Item = &'a Utf8Path;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|path| unsafe { Utf8Path::from_path(path) })
+        self.0.next().map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 }
 
@@ -205,7 +216,7 @@ pub struct Utf8Components<'a>(Components<'a>);
 
 impl<'a> Utf8Components<'a> {
     pub fn as_path(&self) -> &'a Utf8Path {
-        unsafe { Utf8Path::from_path(self.0.as_path()) }
+        unsafe { Utf8Path::assert_utf8(self.0.as_path()) }
     }
 }
 
@@ -273,6 +284,18 @@ impl<'a> Utf8PrefixComponent<'a> {
 
     pub fn as_os_str(&self) -> &'a OsStr {
         self.0.as_os_str()
+    }
+}
+
+impl From<String> for Utf8PathBuf {
+    fn from(string: String) -> Utf8PathBuf {
+        Utf8PathBuf(string.into())
+    }
+}
+
+impl From<Utf8PathBuf> for String {
+    fn from(path: Utf8PathBuf) -> String {
+        path.into_string()
     }
 }
 
