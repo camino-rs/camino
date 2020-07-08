@@ -200,7 +200,81 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
 
 impl<'a> FusedIterator for Utf8Ancestors<'a> { }
 
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Utf8Components<'a>(Components<'a>);
+
+impl<'a> Utf8Components<'a> {
+    pub fn as_path(&self) -> &'a Utf8Path {
+        unsafe { Utf8Path::from_path(self.0.as_path()) }
+    }
+}
+
+impl<'a> Iterator for Utf8Components<'a> {
+    type Item = Utf8Component<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|component| unsafe { Utf8Component::new(component) })
+    }
+}
+
+impl<'a> FusedIterator for Utf8Components<'a> { }
+
+impl<'a> DoubleEndedIterator for Utf8Components<'a> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.0.next_back().map(|component| unsafe { Utf8Component::new(component) })
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+pub enum Utf8Component<'a> {
+    Prefix(Utf8PrefixComponent<'a>),
+    RootDir,
+    CurDir,
+    ParentDir,
+    Normal(&'a str),
+}
+
+impl<'a> Utf8Component<'a> {
+    unsafe fn new(component: Component<'a>) -> Utf8Component<'a> {
+        match component {
+            Component::Prefix(prefix)   => Utf8Component::Prefix(Utf8PrefixComponent(prefix)),
+            Component::RootDir          => Utf8Component::RootDir,
+            Component::CurDir           => Utf8Component::CurDir,
+            Component::ParentDir        => Utf8Component::ParentDir,
+            Component::Normal(s)        => Utf8Component::Normal(assert_utf8(s)),
+        }
+    }
+
+    pub fn as_str(&self) -> &'a str {
+        unsafe { assert_utf8(self.as_os_str()) }
+    }
+
+    pub fn as_os_str(&self) -> &'a OsStr {
+        match *self {
+            Utf8Component::Prefix(prefix)   => prefix.as_os_str(),
+            Utf8Component::RootDir          => Component::RootDir.as_os_str(),
+            Utf8Component::CurDir           => Component::CurDir.as_os_str(),
+            Utf8Component::ParentDir        => Component::ParentDir.as_os_str(),
+            Utf8Component::Normal(s)        => OsStr::new(s),
+        }
+    }
+}
+
+#[repr(transparent)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub struct Utf8PrefixComponent<'a>(PrefixComponent<'a>);
+
+impl<'a> Utf8PrefixComponent<'a> {
+    // TODO kind
+
+    pub fn as_str(&self) -> &'a str {
+        unsafe { assert_utf8(self.as_os_str()) }
+    }
+
+    pub fn as_os_str(&self) -> &'a OsStr {
+        self.0.as_os_str()
+    }
+}
 
 impl AsRef<Utf8Path> for Utf8Path {
     fn as_ref(&self) -> &Utf8Path {
