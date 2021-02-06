@@ -1,5 +1,6 @@
 use std::{
     borrow::{Borrow, Cow},
+    cmp::Ordering,
     ffi::{OsStr, OsString},
     fmt, fs, io,
     iter::FusedIterator,
@@ -9,16 +10,79 @@ use std::{
     sync::Arc,
 };
 
+/// An owned, mutable UTF-8 path (akin to [`String`]).
+///
+/// This type provides methods like [`push`] and [`set_extension`] that mutate
+/// the path in place. It also implements [`Deref`] to [`Utf8Path`], meaning that
+/// all methods on [`Utf8Path`] slices are available on `Utf8PathBuf` values as well.
+///
+/// [`push`]: Utf8PathBuf::push
+/// [`set_extension`]: Utf8PathBuf::set_extension
+///
+/// # Examples
+///
+/// You can use [`push`] to build up a `Utf8PathBuf` from
+/// components:
+///
+/// ```
+/// use camino::Utf8PathBuf;
+///
+/// let mut path = Utf8PathBuf::new();
+///
+/// path.push(r"C:\");
+/// path.push("windows");
+/// path.push("system32");
+///
+/// path.set_extension("dll");
+/// ```
+///
+/// However, [`push`] is best used for dynamic situations. This is a better way
+/// to do this when you know all of the components ahead of time:
+///
+/// ```
+/// use camino::Utf8PathBuf;
+///
+/// let path: Utf8PathBuf = [r"C:\", "windows", "system32.dll"].iter().collect();
+/// ```
+///
+/// We can still do better than this! Since these are all strings, we can use
+/// `From::from`:
+///
+/// ```
+/// use camino::Utf8PathBuf;
+///
+/// let path = Utf8PathBuf::from(r"C:\windows\system32.dll");
+/// ```
+///
+/// Which method works best depends on what kind of situation you're in.
 // NB: Internal PathBuf must only contain utf8 data
 #[derive(Clone, Default, Hash)]
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
 
 impl Utf8PathBuf {
+    /// Allocates an empty `Utf8PathBuf`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let path = Utf8PathBuf::new();
+    /// ```
     pub fn new() -> Utf8PathBuf {
         Utf8PathBuf(PathBuf::new())
     }
 
+    /// Creates a new `Utf8PathBuf` from a `PathBuf` containing valid UTF-8 characters.
+    ///
+    /// Errors with the original `PathBuf` if it is not valid UTF-8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    /// ```
     pub fn from_path_buf(path: PathBuf) -> Result<Utf8PathBuf, PathBuf> {
         match path.into_os_string().into_string() {
             Ok(string) => Ok(Utf8PathBuf::from(string)),
@@ -26,58 +90,224 @@ impl Utf8PathBuf {
         }
     }
 
+    /// Creates a new `Utf8PathBuf` with a given capacity used to create the internal [`PathBuf`].
+    /// See [`with_capacity`] defined on [`PathBuf`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let mut path = Utf8PathBuf::with_capacity(10);
+    /// let capacity = path.capacity();
+    ///
+    /// // This push is done without reallocating
+    /// path.push(r"C:\");
+    ///
+    /// assert_eq!(capacity, path.capacity());
+    /// ```
+    ///
+    /// [`with_capacity`]: PathBuf::with_capacity
     pub fn with_capacity(capacity: usize) -> Utf8PathBuf {
         Utf8PathBuf(PathBuf::with_capacity(capacity))
     }
 
+    /// Coerces to a [`Utf8Path`] slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let p = Utf8PathBuf::from("/test");
+    /// assert_eq!(Utf8Path::new("/test"), p.as_path());
+    /// ```
     pub fn as_path(&self) -> &Utf8Path {
         unsafe { Utf8Path::assert_utf8(&*self.0) }
     }
 
+    /// Extends `self` with `path`.
+    ///
+    /// If `path` is absolute, it replaces the current path.
+    ///
+    /// On Windows:
+    ///
+    /// * if `path` has a root but no prefix (e.g., `\windows`), it
+    ///   replaces everything except for the prefix (if any) of `self`.
+    /// * if `path` has a prefix but no root, it replaces `self`.
+    ///
+    /// # Examples
+    ///
+    /// Pushing a relative path extends the existing path:
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let mut path = Utf8PathBuf::from("/tmp");
+    /// path.push("file.bk");
+    /// assert_eq!(path, Utf8PathBuf::from("/tmp/file.bk"));
+    /// ```
+    ///
+    /// Pushing an absolute path replaces the existing path:
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let mut path = Utf8PathBuf::from("/tmp");
+    /// path.push("/etc");
+    /// assert_eq!(path, Utf8PathBuf::from("/etc"));
+    /// ```
     pub fn push(&mut self, path: impl AsRef<Utf8Path>) {
         self.0.push(&path.as_ref().0)
     }
 
+    /// Truncates `self` to [`self.parent`].
+    ///
+    /// Returns `false` and does nothing if [`self.parent`] is [`None`].
+    /// Otherwise, returns `true`.
+    ///
+    /// [`self.parent`]: Utf8Path::parent
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let mut p = Utf8PathBuf::from("/spirited/away.rs");
+    ///
+    /// p.pop();
+    /// assert_eq!(Utf8Path::new("/spirited"), p);
+    /// p.pop();
+    /// assert_eq!(Utf8Path::new("/"), p);
+    /// ```
     pub fn pop(&mut self) -> bool {
         self.0.pop()
     }
 
+    /// Updates [`self.file_name`] to `file_name`.
+    ///
+    /// If [`self.file_name`] was [`None`], this is equivalent to pushing
+    /// `file_name`.
+    ///
+    /// Otherwise it is equivalent to calling [`pop`] and then pushing
+    /// `file_name`. The new path will be a sibling of the original path.
+    /// (That is, it will have the same parent.)
+    ///
+    /// [`self.file_name`]: Utf8Path::file_name
+    /// [`pop`]: Utf8PathBuf::pop
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let mut buf = Utf8PathBuf::from("/");
+    /// assert_eq!(buf.file_name(), None);
+    /// buf.set_file_name("bar");
+    /// assert_eq!(buf, Utf8PathBuf::from("/bar"));
+    /// assert!(buf.file_name().is_some());
+    /// buf.set_file_name("baz.txt");
+    /// assert_eq!(buf, Utf8PathBuf::from("/baz.txt"));
+    /// ```
     pub fn set_file_name(&mut self, file_name: impl AsRef<str>) {
         self.0.set_file_name(file_name.as_ref())
     }
 
+    /// Updates [`self.extension`] to `extension`.
+    ///
+    /// Returns `false` and does nothing if [`self.file_name`] is [`None`],
+    /// returns `true` and updates the extension otherwise.
+    ///
+    /// If [`self.extension`] is [`None`], the extension is added; otherwise
+    /// it is replaced.
+    ///
+    /// [`self.file_name`]: Utf8Path::file_name
+    /// [`self.extension`]: Utf8Path::extension
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let mut p = Utf8PathBuf::from("/feel/the");
+    ///
+    /// p.set_extension("force");
+    /// assert_eq!(Utf8Path::new("/feel/the.force"), p.as_path());
+    ///
+    /// p.set_extension("dark_side");
+    /// assert_eq!(Utf8Path::new("/feel/the.dark_side"), p.as_path());
+    /// ```
     pub fn set_extension(&mut self, extension: impl AsRef<str>) -> bool {
         self.0.set_extension(extension.as_ref())
     }
 
+    /// Consumes the `Utf8PathBuf`, yielding its internal [`String`] storage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let p = Utf8PathBuf::from("/the/head");
+    /// let s = p.into_string();
+    /// assert_eq!(s, "/the/head");
+    /// ```
     pub fn into_string(self) -> String {
         self.into_os_string().into_string().unwrap()
     }
 
+    /// Consumes the `Utf8PathBuf`, yielding its internal [`OsString`] storage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    /// use std::ffi::OsStr;
+    ///
+    /// let p = Utf8PathBuf::from("/the/head");
+    /// let s = p.into_os_string();
+    /// assert_eq!(s, OsStr::new("/the/head"));
+    /// ```
     pub fn into_os_string(self) -> OsString {
         self.0.into_os_string()
     }
 
+    /// Converts this `Utf8PathBuf` into a [boxed](Box) [`Utf8Path`].
     pub fn into_boxed_path(self) -> Box<Utf8Path> {
         unsafe { Box::from_raw(Box::into_raw(self.0.into_boxed_path()) as *mut Utf8Path) }
     }
 
+    /// Invokes [`capacity`] on the underlying instance of [`PathBuf`].
+    ///
+    /// [`capacity`]: PathBuf::capacity
     pub fn capacity(&self) -> usize {
         self.0.capacity()
     }
 
+    /// Invokes [`clear`] on the underlying instance of [`PathBuf`].
+    ///
+    /// [`clear`]: PathBuf::clear
     pub fn clear(&mut self) {
         self.0.clear()
     }
 
+    /// Invokes [`reserve`] on the underlying instance of [`PathBuf`].
+    ///
+    /// [`reserve`]: PathBuf::reserve
     pub fn reserve(&mut self, additional: usize) {
         self.0.reserve(additional)
     }
 
+    /// Invokes [`reserve_exact`] on the underlying instance of [`PathBuf`].
+    ///
+    /// [`reserve_exact`]: PathBuf::reserve_exact
     pub fn reserve_exact(&mut self, additional: usize) {
         self.0.reserve_exact(additional)
     }
 
+    /// Invokes [`shrink_to_fit`] on the underlying instance of [`PathBuf`].
+    ///
+    /// [`shrink_to_fit`]: PathBuf::shrink_to_fit
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit()
     }
@@ -111,20 +341,83 @@ impl<P: AsRef<Utf8Path>> Extend<P> for Utf8PathBuf {
     }
 }
 
+/// A slice of a UTF-8 path (akin to [`str`]).
+///
+/// This type supports a number of operations for inspecting a path, including
+/// breaking the path into its components (separated by `/` on Unix and by either
+/// `/` or `\` on Windows), extracting the file name, determining whether the path
+/// is absolute, and so on.
+///
+/// This is an *unsized* type, meaning that it must always be used behind a
+/// pointer like `&` or [`Box`]. For an owned version of this type,
+/// see [`Utf8PathBuf`].
+///
+/// # Examples
+///
+/// ```
+/// use camino::Utf8Path;
+///
+/// // Note: this example does work on Windows
+/// let path = Utf8Path::new("./foo/bar.txt");
+///
+/// let parent = path.parent();
+/// assert_eq!(parent, Some(Utf8Path::new("./foo")));
+///
+/// let file_stem = path.file_stem();
+/// assert_eq!(file_stem, Some("bar"));
+///
+/// let extension = path.extension();
+/// assert_eq!(extension, Some("txt"));
+/// ```
 // NB: Internal Path must only contain utf8 data
 #[repr(transparent)]
 #[derive(Hash)]
 pub struct Utf8Path(Path);
 
 impl Utf8Path {
+    /// Directly wraps a string slice as a `Utf8Path` slice.
+    ///
+    /// This is a cost-free conversion.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// Utf8Path::new("foo.txt");
+    /// ```
+    ///
+    /// You can create `Utf8Path`s from `String`s, or even other `Utf8Path`s:
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let string = String::from("foo.txt");
+    /// let from_string = Utf8Path::new(&string);
+    /// let from_path = Utf8Path::new(&from_string);
+    /// assert_eq!(from_string, from_path);
+    /// ```
     pub fn new(s: &(impl AsRef<str> + ?Sized)) -> &Utf8Path {
         unsafe { Utf8Path::assert_utf8(Path::new(s.as_ref())) }
     }
 
+    /// Converts a [`Path`] to a `Utf8Path`.
+    ///
+    /// Returns `None` if the path is not valid UTF-8.
     pub fn from_path(path: &Path) -> Option<&Utf8Path> {
         path.as_os_str().to_str().map(|s| Utf8Path::new(s))
     }
 
+    /// Yields the underlying [`str`] slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let s = Utf8Path::new("foo.txt").as_str();
+    /// assert_eq!(s, "foo.txt");
+    /// ```
     pub fn as_str(&self) -> &str {
         unsafe { assert_utf8(self.as_os_str()) }
     }
@@ -397,6 +690,12 @@ impl From<String> for Utf8PathBuf {
     }
 }
 
+impl From<&str> for Utf8PathBuf {
+    fn from(s: &str) -> Utf8PathBuf {
+        Utf8PathBuf(s.into())
+    }
+}
+
 impl From<Box<Utf8Path>> for Utf8PathBuf {
     fn from(path: Box<Utf8Path>) -> Utf8PathBuf {
         path.into_path_buf()
@@ -520,6 +819,74 @@ impl ToOwned for Utf8Path {
         self.to_path_buf()
     }
 }
+
+impl<P: AsRef<Utf8Path>> std::iter::FromIterator<P> for Utf8PathBuf {
+    fn from_iter<I: IntoIterator<Item = P>>(iter: I) -> Utf8PathBuf {
+        let mut buf = Utf8PathBuf::new();
+        buf.extend(iter);
+        buf
+    }
+}
+
+impl PartialEq for Utf8PathBuf {
+    fn eq(&self, other: &Utf8PathBuf) -> bool {
+        self.components() == other.components()
+    }
+}
+
+impl Eq for Utf8PathBuf {}
+
+impl PartialEq for Utf8Path {
+    fn eq(&self, other: &Utf8Path) -> bool {
+        self.components().eq(other.components())
+    }
+}
+
+impl Eq for Utf8Path {}
+
+impl PartialOrd for Utf8Path {
+    fn partial_cmp(&self, other: &Utf8Path) -> Option<Ordering> {
+        self.components().partial_cmp(other.components())
+    }
+}
+
+macro_rules! impl_cmp {
+    ($lhs:ty, $rhs: ty) => {
+        impl<'a, 'b> PartialEq<$rhs> for $lhs {
+            #[inline]
+            fn eq(&self, other: &$rhs) -> bool {
+                <Utf8Path as PartialEq>::eq(self, other)
+            }
+        }
+
+        impl<'a, 'b> PartialEq<$lhs> for $rhs {
+            #[inline]
+            fn eq(&self, other: &$lhs) -> bool {
+                <Utf8Path as PartialEq>::eq(self, other)
+            }
+        }
+
+        impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$rhs) -> Option<Ordering> {
+                <Utf8Path as PartialOrd>::partial_cmp(self, other)
+            }
+        }
+
+        impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$lhs) -> Option<Ordering> {
+                <Utf8Path as PartialOrd>::partial_cmp(self, other)
+            }
+        }
+    };
+}
+
+impl_cmp!(Utf8PathBuf, Utf8Path);
+impl_cmp!(Utf8PathBuf, &'a Utf8Path);
+impl_cmp!(Cow<'a, Utf8Path>, Utf8Path);
+impl_cmp!(Cow<'a, Utf8Path>, &'b Utf8Path);
+impl_cmp!(Cow<'a, Utf8Path>, Utf8PathBuf);
 
 // invariant: OsStr must be guaranteed to be utf8 data
 unsafe fn assert_utf8(string: &OsStr) -> &str {
