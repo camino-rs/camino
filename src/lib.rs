@@ -82,6 +82,21 @@ impl Utf8PathBuf {
     ///
     /// ```
     /// use camino::Utf8PathBuf;
+    /// use std::ffi::OsStr;
+    /// # #[cfg(unix)]
+    /// use std::os::unix::ffi::OsStrExt;
+    /// use std::path::PathBuf;
+    ///
+    /// let unicode_path = PathBuf::from("/valid/unicode");
+    /// Utf8PathBuf::from_path_buf(unicode_path).expect("valid Unicode path succeeded");
+    ///
+    /// // Paths on Unix can be non-UTF-8.
+    /// # #[cfg(unix)]
+    /// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+    /// # #[cfg(unix)]
+    /// let non_unicode_path = PathBuf::from(non_unicode_str);
+    /// # #[cfg(unix)]
+    /// Utf8PathBuf::from_path_buf(non_unicode_path).expect_err("non-Unicode path failed");
     /// ```
     pub fn from_path_buf(path: PathBuf) -> Result<Utf8PathBuf, PathBuf> {
         match path.into_os_string().into_string() {
@@ -404,11 +419,35 @@ impl Utf8Path {
     /// Converts a [`Path`] to a `Utf8Path`.
     ///
     /// Returns `None` if the path is not valid UTF-8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    /// use std::ffi::OsStr;
+    /// # #[cfg(unix)]
+    /// use std::os::unix::ffi::OsStrExt;
+    /// use std::path::Path;
+    ///
+    /// let unicode_path = Path::new("/valid/unicode");
+    /// Utf8Path::from_path(unicode_path).expect("valid Unicode path succeeded");
+    ///
+    /// // Paths on Unix can be non-UTF-8.
+    /// # #[cfg(unix)]
+    /// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+    /// # #[cfg(unix)]
+    /// let non_unicode_path = Path::new(non_unicode_str);
+    /// # #[cfg(unix)]
+    /// assert!(Utf8Path::from_path(non_unicode_path).is_none(), "non-Unicode path failed");
+    /// ```
     pub fn from_path(path: &Path) -> Option<&Utf8Path> {
         path.as_os_str().to_str().map(|s| Utf8Path::new(s))
     }
 
     /// Yields the underlying [`str`] slice.
+    ///
+    /// Unlike [`Path::to_str`], this always returns a slice because the contents of a `Utf8Path`
+    /// are guaranteed to be valid UTF-8.
     ///
     /// # Examples
     ///
@@ -418,82 +457,408 @@ impl Utf8Path {
     /// let s = Utf8Path::new("foo.txt").as_str();
     /// assert_eq!(s, "foo.txt");
     /// ```
+    ///
+    /// [`str`]: str
     pub fn as_str(&self) -> &str {
         unsafe { assert_utf8(self.as_os_str()) }
     }
 
+    /// Yields the underlying [`OsStr`] slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let os_str = Utf8Path::new("foo.txt").as_os_str();
+    /// assert_eq!(os_str, std::ffi::OsStr::new("foo.txt"));
+    /// ```
     pub fn as_os_str(&self) -> &OsStr {
         self.0.as_os_str()
     }
 
+    /// Converts a `Utf8Path` to an owned [`Utf8PathBuf`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let path_buf = Utf8Path::new("foo.txt").to_path_buf();
+    /// assert_eq!(path_buf, Utf8PathBuf::from("foo.txt"));
+    /// ```
     pub fn to_path_buf(&self) -> Utf8PathBuf {
         Utf8PathBuf(self.0.to_path_buf())
     }
 
+    /// Returns `true` if the `Utf8Path` is absolute, i.e., if it is independent of
+    /// the current directory.
+    ///
+    /// * On Unix, a path is absolute if it starts with the root, so
+    /// `is_absolute` and [`has_root`] are equivalent.
+    ///
+    /// * On Windows, a path is absolute if it has a prefix and starts with the
+    /// root: `c:\windows` is absolute, while `c:temp` and `\temp` are not.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert!(!Utf8Path::new("foo.txt").is_absolute());
+    /// ```
+    ///
+    /// [`has_root`]: Utf8Path::has_root
     pub fn is_absolute(&self) -> bool {
         self.0.is_absolute()
     }
 
+    /// Returns `true` if the `Utf8Path` is relative, i.e., not absolute.
+    ///
+    /// See [`is_absolute`]'s documentation for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert!(Utf8Path::new("foo.txt").is_relative());
+    /// ```
+    ///
+    /// [`is_absolute`]: Utf8Path::is_absolute
     pub fn is_relative(&self) -> bool {
         self.0.is_relative()
     }
 
+    /// Returns `true` if the `Utf8Path` has a root.
+    ///
+    /// * On Unix, a path has a root if it begins with `/`.
+    ///
+    /// * On Windows, a path has a root if it:
+    ///     * has no prefix and begins with a separator, e.g., `\windows`
+    ///     * has a prefix followed by a separator, e.g., `c:\windows` but not `c:windows`
+    ///     * has any non-disk prefix, e.g., `\\server\share`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert!(Utf8Path::new("/etc/passwd").has_root());
+    /// ```
     pub fn has_root(&self) -> bool {
         self.0.has_root()
     }
 
+    /// Returns the `Path` without its final component, if there is one.
+    ///
+    /// Returns [`None`] if the path terminates in a root or prefix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("/foo/bar");
+    /// let parent = path.parent().unwrap();
+    /// assert_eq!(parent, Utf8Path::new("/foo"));
+    ///
+    /// let grand_parent = parent.parent().unwrap();
+    /// assert_eq!(grand_parent, Utf8Path::new("/"));
+    /// assert_eq!(grand_parent.parent(), None);
+    /// ```
     pub fn parent(&self) -> Option<&Utf8Path> {
         self.0
             .parent()
             .map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
+    /// Produces an iterator over `Utf8Path` and its ancestors.
+    ///
+    /// The iterator will yield the `Utf8Path` that is returned if the [`parent`] method is used zero
+    /// or more times. That means, the iterator will yield `&self`, `&self.parent().unwrap()`,
+    /// `&self.parent().unwrap().parent().unwrap()` and so on. If the [`parent`] method returns
+    /// [`None`], the iterator will do likewise. The iterator will always yield at least one value,
+    /// namely `&self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let mut ancestors = Utf8Path::new("/foo/bar").ancestors();
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("/foo/bar")));
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("/foo")));
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("/")));
+    /// assert_eq!(ancestors.next(), None);
+    ///
+    /// let mut ancestors = Utf8Path::new("../foo/bar").ancestors();
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("../foo/bar")));
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("../foo")));
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("..")));
+    /// assert_eq!(ancestors.next(), Some(Utf8Path::new("")));
+    /// assert_eq!(ancestors.next(), None);
+    /// ```
+    ///
+    /// [`parent`]: Utf8Path::parent
     pub fn ancestors(&self) -> Utf8Ancestors<'_> {
         Utf8Ancestors(self.0.ancestors())
     }
 
+    /// Returns the final component of the `Utf8Path`, if there is one.
+    ///
+    /// If the path is a normal file, this is the file name. If it's the path of a directory, this
+    /// is the directory name.
+    ///
+    /// Returns [`None`] if the path terminates in `..`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert_eq!(Some("bin"), Utf8Path::new("/usr/bin/").file_name());
+    /// assert_eq!(Some("foo.txt"), Utf8Path::new("tmp/foo.txt").file_name());
+    /// assert_eq!(Some("foo.txt"), Utf8Path::new("foo.txt/.").file_name());
+    /// assert_eq!(Some("foo.txt"), Utf8Path::new("foo.txt/.//").file_name());
+    /// assert_eq!(None, Utf8Path::new("foo.txt/..").file_name());
+    /// assert_eq!(None, Utf8Path::new("/").file_name());
+    /// ```
     pub fn file_name(&self) -> Option<&str> {
         self.0.file_name().map(|s| unsafe { assert_utf8(s) })
     }
 
+    /// Returns a path that, when joined onto `base`, yields `self`.
+    ///
+    /// # Errors
+    ///
+    /// If `base` is not a prefix of `self` (i.e., [`starts_with`]
+    /// returns `false`), returns [`Err`].
+    ///
+    /// [`starts_with`]: Utf8Path::starts_with
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let path = Utf8Path::new("/test/haha/foo.txt");
+    ///
+    /// assert_eq!(path.strip_prefix("/"), Ok(Utf8Path::new("test/haha/foo.txt")));
+    /// assert_eq!(path.strip_prefix("/test"), Ok(Utf8Path::new("haha/foo.txt")));
+    /// assert_eq!(path.strip_prefix("/test/"), Ok(Utf8Path::new("haha/foo.txt")));
+    /// assert_eq!(path.strip_prefix("/test/haha/foo.txt"), Ok(Utf8Path::new("")));
+    /// assert_eq!(path.strip_prefix("/test/haha/foo.txt/"), Ok(Utf8Path::new("")));
+    ///
+    /// assert!(path.strip_prefix("test").is_err());
+    /// assert!(path.strip_prefix("/haha").is_err());
+    ///
+    /// let prefix = Utf8PathBuf::from("/test/");
+    /// assert_eq!(path.strip_prefix(prefix), Ok(Utf8Path::new("haha/foo.txt")));
+    /// ```
     pub fn strip_prefix(&self, base: impl AsRef<Path>) -> Result<&Utf8Path, StripPrefixError> {
         self.0
             .strip_prefix(base)
             .map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
+    /// Determines whether `base` is a prefix of `self`.
+    ///
+    /// Only considers whole path components to match.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("/etc/passwd");
+    ///
+    /// assert!(path.starts_with("/etc"));
+    /// assert!(path.starts_with("/etc/"));
+    /// assert!(path.starts_with("/etc/passwd"));
+    /// assert!(path.starts_with("/etc/passwd/")); // extra slash is okay
+    /// assert!(path.starts_with("/etc/passwd///")); // multiple extra slashes are okay
+    ///
+    /// assert!(!path.starts_with("/e"));
+    /// assert!(!path.starts_with("/etc/passwd.txt"));
+    ///
+    /// assert!(!Utf8Path::new("/etc/foo.rs").starts_with("/etc/foo"));
+    /// ```
     pub fn starts_with(&self, base: impl AsRef<Path>) -> bool {
         self.0.starts_with(base)
     }
 
+    /// Determines whether `child` is a suffix of `self`.
+    ///
+    /// Only considers whole path components to match.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("/etc/resolv.conf");
+    ///
+    /// assert!(path.ends_with("resolv.conf"));
+    /// assert!(path.ends_with("etc/resolv.conf"));
+    /// assert!(path.ends_with("/etc/resolv.conf"));
+    ///
+    /// assert!(!path.ends_with("/resolv.conf"));
+    /// assert!(!path.ends_with("conf")); // use .extension() instead
+    /// ```
     pub fn ends_with(&self, base: impl AsRef<Path>) -> bool {
         self.0.ends_with(base)
     }
 
+    /// Extracts the stem (non-extension) portion of [`self.file_name`].
+    ///
+    /// [`self.file_name`]: Utf8Path::file_name
+    ///
+    /// The stem is:
+    ///
+    /// * [`None`], if there is no file name;
+    /// * The entire file name if there is no embedded `.`;
+    /// * The entire file name if the file name begins with `.` and has no other `.`s within;
+    /// * Otherwise, the portion of the file name before the final `.`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert_eq!("foo", Utf8Path::new("foo.rs").file_stem().unwrap());
+    /// assert_eq!("foo.tar", Utf8Path::new("foo.tar.gz").file_stem().unwrap());
+    /// ```
     pub fn file_stem(&self) -> Option<&str> {
         self.0.file_stem().map(|s| unsafe { assert_utf8(s) })
     }
 
+    /// Extracts the extension of [`self.file_name`], if possible.
+    ///
+    /// The extension is:
+    ///
+    /// * [`None`], if there is no file name;
+    /// * [`None`], if there is no embedded `.`;
+    /// * [`None`], if the file name begins with `.` and has no other `.`s within;
+    /// * Otherwise, the portion of the file name after the final `.`
+    ///
+    /// [`self.file_name`]: Utf8Path::file_name
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert_eq!("rs", Utf8Path::new("foo.rs").extension().unwrap());
+    /// assert_eq!("gz", Utf8Path::new("foo.tar.gz").extension().unwrap());
+    /// ```
     pub fn extension(&self) -> Option<&str> {
         self.0.extension().map(|s| unsafe { assert_utf8(s) })
     }
 
+    /// Creates an owned [`Utf8PathBuf`] with `path` adjoined to `self`.
+    ///
+    /// See [`Utf8PathBuf::push`] for more details on what it means to adjoin a path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// assert_eq!(Utf8Path::new("/etc").join("passwd"), Utf8PathBuf::from("/etc/passwd"));
+    /// ```
     pub fn join(&self, path: impl AsRef<Utf8Path>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.join(&path.as_ref().0))
     }
 
+    /// Creates an owned [`PathBuf`] with `path` adjoined to `self`.
+    ///
+    /// See [`PathBuf::push`] for more details on what it means to adjoin a path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    /// use std::path::PathBuf;
+    ///
+    /// assert_eq!(Utf8Path::new("/etc").join_os("passwd"), PathBuf::from("/etc/passwd"));
+    /// ```
     pub fn join_os(&self, path: impl AsRef<Path>) -> PathBuf {
         self.0.join(path)
     }
 
+    /// Creates an owned [`Utf8PathBuf`] like `self` but with the given file name.
+    ///
+    /// See [`Utf8PathBuf::set_file_name`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let path = Utf8Path::new("/tmp/foo.txt");
+    /// assert_eq!(path.with_file_name("bar.txt"), Utf8PathBuf::from("/tmp/bar.txt"));
+    ///
+    /// let path = Utf8Path::new("/tmp");
+    /// assert_eq!(path.with_file_name("var"), Utf8PathBuf::from("/var"));
+    /// ```
     pub fn with_file_name(&self, file_name: impl AsRef<str>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.with_file_name(file_name.as_ref()))
     }
 
+    /// Creates an owned [`Utf8PathBuf`] like `self` but with the given extension.
+    ///
+    /// See [`Utf8PathBuf::set_extension`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let path = Utf8Path::new("foo.rs");
+    /// assert_eq!(path.with_extension("txt"), Utf8PathBuf::from("foo.txt"));
+    ///
+    /// let path = Utf8Path::new("foo.tar.gz");
+    /// assert_eq!(path.with_extension(""), Utf8PathBuf::from("foo.tar"));
+    /// assert_eq!(path.with_extension("xz"), Utf8PathBuf::from("foo.tar.xz"));
+    /// assert_eq!(path.with_extension("").with_extension("txt"), Utf8PathBuf::from("foo.txt"));
+    /// ```
     pub fn with_extension(&self, extension: impl AsRef<str>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.with_extension(extension.as_ref()))
     }
 
+    /// Produces an iterator over the [`Utf8Component`]s of the path.
+    ///
+    /// When parsing the path, there is a small amount of normalization:
+    ///
+    /// * Repeated separators are ignored, so `a/b` and `a//b` both have
+    ///   `a` and `b` as components.
+    ///
+    /// * Occurrences of `.` are normalized away, except if they are at the
+    ///   beginning of the path. For example, `a/./b`, `a/b/`, `a/b/.` and
+    ///   `a/b` all have `a` and `b` as components, but `./a/b` starts with
+    ///   an additional [`CurDir`] component.
+    ///
+    /// * A trailing slash is normalized away, `/a/b` and `/a/b/` are equivalent.
+    ///
+    /// Note that no other normalization takes place; in particular, `a/c`
+    /// and `a/b/../c` are distinct, to account for the possibility that `b`
+    /// is a symbolic link (so its parent isn't `a`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Component, Utf8Path};
+    ///
+    /// let mut components = Utf8Path::new("/tmp/foo.txt").components();
+    ///
+    /// assert_eq!(components.next(), Some(Utf8Component::RootDir));
+    /// assert_eq!(components.next(), Some(Utf8Component::Normal("tmp")));
+    /// assert_eq!(components.next(), Some(Utf8Component::Normal("foo.txt")));
+    /// assert_eq!(components.next(), None)
+    /// ```
+    ///
+    /// [`CurDir`]: Utf8Component::CurDir
     pub fn components(&self) -> Utf8Components {
         Utf8Components(self.0.components())
     }
