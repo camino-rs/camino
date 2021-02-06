@@ -1,13 +1,13 @@
-use std::borrow::{Borrow, Cow};
-use std::ffi::{OsStr, OsString};
-use std::fmt;
-use std::fs;
-use std::io;
-use std::iter::FusedIterator;
-use std::ops::Deref;
-use std::path::*;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::{
+    borrow::{Borrow, Cow},
+    ffi::{OsStr, OsString},
+    fmt, fs, io,
+    iter::FusedIterator,
+    ops::Deref,
+    path::*,
+    rc::Rc,
+    sync::Arc,
+};
 
 // NB: Internal PathBuf must only contain utf8 data
 #[derive(Clone, Default, Hash)]
@@ -21,8 +21,8 @@ impl Utf8PathBuf {
 
     pub fn from_path_buf(path: PathBuf) -> Result<Utf8PathBuf, PathBuf> {
         match path.into_os_string().into_string() {
-            Ok(string)      => Ok(Utf8PathBuf::from(string)),
-            Err(os_string)  => Err(PathBuf::from(os_string)),
+            Ok(string) => Ok(Utf8PathBuf::from(string)),
+            Err(os_string) => Err(PathBuf::from(os_string)),
         }
     }
 
@@ -150,7 +150,9 @@ impl Utf8Path {
     }
 
     pub fn parent(&self) -> Option<&Utf8Path> {
-        self.0.parent().map(|path| unsafe { Utf8Path::assert_utf8(path) })
+        self.0
+            .parent()
+            .map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
     pub fn ancestors(&self) -> Utf8Ancestors<'_> {
@@ -162,7 +164,9 @@ impl Utf8Path {
     }
 
     pub fn strip_prefix(&self, base: impl AsRef<Path>) -> Result<&Utf8Path, StripPrefixError> {
-        self.0.strip_prefix(base).map(|path| unsafe { Utf8Path::assert_utf8(path) })
+        self.0
+            .strip_prefix(base)
+            .map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 
     pub fn starts_with(&self, base: impl AsRef<Path>) -> bool {
@@ -234,9 +238,7 @@ impl Utf8Path {
     }
 
     pub fn into_path_buf(self: Box<Utf8Path>) -> Utf8PathBuf {
-        unsafe {
-            Utf8PathBuf(Box::from_raw(Box::into_raw(self) as *mut Path).into_path_buf())
-        }
+        unsafe { Utf8PathBuf(Box::from_raw(Box::into_raw(self) as *mut Path).into_path_buf()) }
     }
 
     // invariant: Path must be guaranteed to be utf-8 data
@@ -271,11 +273,13 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
     type Item = &'a Utf8Path;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|path| unsafe { Utf8Path::assert_utf8(path) })
+        self.0
+            .next()
+            .map(|path| unsafe { Utf8Path::assert_utf8(path) })
     }
 }
 
-impl<'a> FusedIterator for Utf8Ancestors<'a> { }
+impl<'a> FusedIterator for Utf8Ancestors<'a> {}
 
 #[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Utf8Components<'a>(Components<'a>);
@@ -290,15 +294,19 @@ impl<'a> Iterator for Utf8Components<'a> {
     type Item = Utf8Component<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|component| unsafe { Utf8Component::new(component) })
+        self.0
+            .next()
+            .map(|component| unsafe { Utf8Component::new(component) })
     }
 }
 
-impl<'a> FusedIterator for Utf8Components<'a> { }
+impl<'a> FusedIterator for Utf8Components<'a> {}
 
 impl<'a> DoubleEndedIterator for Utf8Components<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|component| unsafe { Utf8Component::new(component) })
+        self.0
+            .next_back()
+            .map(|component| unsafe { Utf8Component::new(component) })
     }
 }
 
@@ -320,11 +328,11 @@ pub enum Utf8Component<'a> {
 impl<'a> Utf8Component<'a> {
     unsafe fn new(component: Component<'a>) -> Utf8Component<'a> {
         match component {
-            Component::Prefix(prefix)   => Utf8Component::Prefix(Utf8PrefixComponent(prefix)),
-            Component::RootDir          => Utf8Component::RootDir,
-            Component::CurDir           => Utf8Component::CurDir,
-            Component::ParentDir        => Utf8Component::ParentDir,
-            Component::Normal(s)        => Utf8Component::Normal(assert_utf8(s)),
+            Component::Prefix(prefix) => Utf8Component::Prefix(Utf8PrefixComponent(prefix)),
+            Component::RootDir => Utf8Component::RootDir,
+            Component::CurDir => Utf8Component::CurDir,
+            Component::ParentDir => Utf8Component::ParentDir,
+            Component::Normal(s) => Utf8Component::Normal(assert_utf8(s)),
         }
     }
 
@@ -334,11 +342,11 @@ impl<'a> Utf8Component<'a> {
 
     pub fn as_os_str(&self) -> &'a OsStr {
         match *self {
-            Utf8Component::Prefix(prefix)   => prefix.as_os_str(),
-            Utf8Component::RootDir          => Component::RootDir.as_os_str(),
-            Utf8Component::CurDir           => Component::CurDir.as_os_str(),
-            Utf8Component::ParentDir        => Component::ParentDir.as_os_str(),
-            Utf8Component::Normal(s)        => OsStr::new(s),
+            Utf8Component::Prefix(prefix) => prefix.as_os_str(),
+            Utf8Component::RootDir => Component::RootDir.as_os_str(),
+            Utf8Component::CurDir => Component::CurDir.as_os_str(),
+            Utf8Component::ParentDir => Component::ParentDir.as_os_str(),
+            Utf8Component::Normal(s) => OsStr::new(s),
         }
     }
 }
