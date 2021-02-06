@@ -863,6 +863,29 @@ impl Utf8Path {
         Utf8Components(self.0.components())
     }
 
+    /// Produces an iterator over the path's components viewed as [`str`]
+    /// slices.
+    ///
+    /// For more information about the particulars of how the path is separated
+    /// into components, see [`components`].
+    ///
+    /// [`components`]: Utf8Path::components
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let mut it = Utf8Path::new("/tmp/foo.txt").iter();
+    /// assert_eq!(it.next(), Some(std::path::MAIN_SEPARATOR.to_string().as_str()));
+    /// assert_eq!(it.next(), Some("tmp"));
+    /// assert_eq!(it.next(), Some("foo.txt"));
+    /// assert_eq!(it.next(), None)
+    /// ```
+    pub fn iter(&self) -> Iter<'_> {
+        Iter { inner: self.components() }
+    }
+
     pub fn metadata(&self) -> io::Result<fs::Metadata> {
         self.0.metadata()
     }
@@ -939,10 +962,41 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
 
 impl<'a> FusedIterator for Utf8Ancestors<'a> {}
 
+/// An iterator over the [`Utf8Component`]s of a [`Utf8Path`].
+///
+/// This `struct` is created by the [`components`] method on [`Utf8Path`].
+/// See its documentation for more.
+///
+/// # Examples
+///
+/// ```
+/// use camino::Utf8Path;
+///
+/// let path = Utf8Path::new("/tmp/foo/bar.txt");
+///
+/// for component in path.components() {
+///     println!("{:?}", component);
+/// }
+/// ```
+///
+/// [`components`]: Utf8Path::components
 #[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Utf8Components<'a>(Components<'a>);
 
 impl<'a> Utf8Components<'a> {
+    /// Extracts a slice corresponding to the portion of the path remaining for iteration.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let mut components = Utf8Path::new("/tmp/foo/bar.txt").components();
+    /// components.next();
+    /// components.next();
+    ///
+    /// assert_eq!(Utf8Path::new("foo/bar.txt"), components.as_path());
+    /// ```
     pub fn as_path(&self) -> &'a Utf8Path {
         unsafe { Utf8Path::assert_utf8(self.0.as_path()) }
     }
@@ -974,6 +1028,84 @@ impl<'a> fmt::Debug for Utf8Components<'a> {
     }
 }
 
+/// An iterator over the [`Utf8Component`]s of a [`Utf8Path`], as [`str`] slices.
+///
+/// This `struct` is created by the [`iter`] method on [`Utf8Path`].
+/// See its documentation for more.
+///
+/// [`iter`]: Utf8Path::iter
+#[derive(Clone)]
+pub struct Iter<'a> {
+    inner: Utf8Components<'a>,
+}
+
+impl fmt::Debug for Iter<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        struct DebugHelper<'a>(&'a Utf8Path);
+
+        impl fmt::Debug for DebugHelper<'_> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.debug_list().entries(self.0.iter()).finish()
+            }
+        }
+
+        f.debug_tuple("Iter").field(&DebugHelper(self.as_path())).finish()
+    }
+}
+
+impl<'a> Iter<'a> {
+    /// Extracts a slice corresponding to the portion of the path remaining for iteration.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let mut iter = Utf8Path::new("/tmp/foo/bar.txt").iter();
+    /// iter.next();
+    /// iter.next();
+    ///
+    /// assert_eq!(Utf8Path::new("foo/bar.txt"), iter.as_path());
+    /// ```
+    pub fn as_path(&self) -> &'a Utf8Path {
+        self.inner.as_path()
+    }
+}
+
+impl AsRef<Utf8Path> for Iter<'_> {
+    fn as_ref(&self) -> &Utf8Path {
+        self.as_path()
+    }
+}
+
+impl AsRef<Path> for Iter<'_> {
+    fn as_ref(&self) -> &Path {
+        self.as_path().as_ref()
+    }
+}
+
+impl AsRef<OsStr> for Iter<'_> {
+    fn as_ref(&self) -> &OsStr {
+        self.as_path().as_os_str()
+    }
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<&'a str> {
+        self.inner.next().map(|component| component.as_str())
+    }
+}
+
+impl<'a> DoubleEndedIterator for Iter<'a> {
+    fn next_back(&mut self) -> Option<&'a str> {
+        self.inner.next_back().map(|component| component.as_str())
+    }
+}
+
+impl FusedIterator for Iter<'_> {}
+
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Utf8Component<'a> {
     Prefix(Utf8PrefixComponent<'a>),
@@ -994,10 +1126,32 @@ impl<'a> Utf8Component<'a> {
         }
     }
 
+    /// Extracts the underlying [`str`] slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("./tmp/foo/bar.txt");
+    /// let components: Vec<_> = path.components().map(|comp| comp.as_str()).collect();
+    /// assert_eq!(&components, &[".", "tmp", "foo", "bar.txt"]);
+    /// ```
     pub fn as_str(&self) -> &'a str {
         unsafe { assert_utf8(self.as_os_str()) }
     }
 
+    /// Extracts the underlying [`OsStr`] slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("./tmp/foo/bar.txt");
+    /// let components: Vec<_> = path.components().map(|comp| comp.as_os_str()).collect();
+    /// assert_eq!(&components, &[".", "tmp", "foo", "bar.txt"]);
+    /// ```
     pub fn as_os_str(&self) -> &'a OsStr {
         match *self {
             Utf8Component::Prefix(prefix) => prefix.as_os_str(),
@@ -1212,6 +1366,22 @@ impl Eq for Utf8Path {}
 impl PartialOrd for Utf8Path {
     fn partial_cmp(&self, other: &Utf8Path) -> Option<Ordering> {
         self.components().partial_cmp(other.components())
+    }
+}
+
+impl<'a> IntoIterator for &'a Utf8PathBuf {
+    type Item = &'a str;
+    type IntoIter = Iter<'a>;
+    fn into_iter(self) -> Iter<'a> {
+        self.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Utf8Path {
+    type Item = &'a str;
+    type IntoIter = Iter<'a>;
+    fn into_iter(self) -> Iter<'a> {
+        self.iter()
     }
 }
 
