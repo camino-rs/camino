@@ -143,6 +143,7 @@ impl Utf8PathBuf {
     /// assert_eq!(Utf8Path::new("/test"), p.as_path());
     /// ```
     pub fn as_path(&self) -> &Utf8Path {
+        // SAFETY: every Utf8PathBuf constructor ensures that self is valid UTF-8
         unsafe { Utf8Path::assume_utf8(&*self.0) }
     }
 
@@ -294,7 +295,13 @@ impl Utf8PathBuf {
 
     /// Converts this `Utf8PathBuf` into a [boxed](Box) [`Utf8Path`].
     pub fn into_boxed_path(self) -> Box<Utf8Path> {
-        unsafe { Box::from_raw(Box::into_raw(self.0.into_boxed_path()) as *mut Utf8Path) }
+        let ptr = Box::into_raw(self.0.into_boxed_path()) as *mut Utf8Path;
+        // SAFETY:
+        // * self is valid UTF-8
+        // * ptr was constructed by consuming self so it represents an owned path
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from *mut Path to
+        //   *mut Utf8Path is valid
+        unsafe { Box::from_raw(ptr) }
     }
 
     /// Invokes [`capacity`] on the underlying instance of [`PathBuf`].
@@ -417,7 +424,9 @@ impl Utf8Path {
     /// assert_eq!(from_string, from_path);
     /// ```
     pub fn new(s: &(impl AsRef<str> + ?Sized)) -> &Utf8Path {
-        unsafe { Utf8Path::assume_utf8(Path::new(s.as_ref())) }
+        let path = Path::new(s.as_ref());
+        // SAFETY: s is a str which means it is always valid UTF-8
+        unsafe { Utf8Path::assume_utf8(path) }
     }
 
     /// Converts a [`Path`] to a `Utf8Path`.
@@ -464,6 +473,7 @@ impl Utf8Path {
     ///
     /// [`str`]: str
     pub fn as_str(&self) -> &str {
+        // SAFETY: every Utf8Path constructor ensures that self is valid UTF-8
         unsafe { assume_utf8(self.as_os_str()) }
     }
 
@@ -572,9 +582,10 @@ impl Utf8Path {
     /// assert_eq!(grand_parent.parent(), None);
     /// ```
     pub fn parent(&self) -> Option<&Utf8Path> {
-        self.0
-            .parent()
-            .map(|path| unsafe { Utf8Path::assume_utf8(path) })
+        self.0.parent().map(|path| {
+            // SAFETY: self is valid UTF-8, so parent is valid UTF-8 as well
+            unsafe { Utf8Path::assume_utf8(path) }
+        })
     }
 
     /// Produces an iterator over `Utf8Path` and its ancestors.
@@ -629,7 +640,10 @@ impl Utf8Path {
     /// assert_eq!(None, Utf8Path::new("/").file_name());
     /// ```
     pub fn file_name(&self) -> Option<&str> {
-        self.0.file_name().map(|s| unsafe { assume_utf8(s) })
+        self.0.file_name().map(|s| {
+            // SAFETY: self is valid UTF-8, so file_name is valid UTF-8 as well
+            unsafe { assume_utf8(s) }
+        })
     }
 
     /// Returns a path that, when joined onto `base`, yields `self`.
@@ -661,9 +675,11 @@ impl Utf8Path {
     /// assert_eq!(path.strip_prefix(prefix), Ok(Utf8Path::new("haha/foo.txt")));
     /// ```
     pub fn strip_prefix(&self, base: impl AsRef<Path>) -> Result<&Utf8Path, StripPrefixError> {
-        self.0
-            .strip_prefix(base)
-            .map(|path| unsafe { Utf8Path::assume_utf8(path) })
+        self.0.strip_prefix(base).map(|path| {
+            // SAFETY: self is valid UTF-8, and strip_prefix returns a part of self (or an empty
+            // string), so it is valid UTF-8 as well.
+            unsafe { Utf8Path::assume_utf8(path) }
+        })
     }
 
     /// Determines whether `base` is a prefix of `self`.
@@ -734,7 +750,10 @@ impl Utf8Path {
     /// assert_eq!("foo.tar", Utf8Path::new("foo.tar.gz").file_stem().unwrap());
     /// ```
     pub fn file_stem(&self) -> Option<&str> {
-        self.0.file_stem().map(|s| unsafe { assume_utf8(s) })
+        self.0.file_stem().map(|s| {
+            // SAFETY: self is valid UTF-8, so file_stem is valid UTF-8 as well
+            unsafe { assume_utf8(s) }
+        })
     }
 
     /// Extracts the extension of [`self.file_name`], if possible.
@@ -757,7 +776,10 @@ impl Utf8Path {
     /// assert_eq!("gz", Utf8Path::new("foo.tar.gz").extension().unwrap());
     /// ```
     pub fn extension(&self) -> Option<&str> {
-        self.0.extension().map(|s| unsafe { assume_utf8(s) })
+        self.0.extension().map(|s| {
+            // SAFETY: self is valid UTF-8, so extension is valid UTF-8 as well
+            unsafe { assume_utf8(s) }
+        })
     }
 
     /// Creates an owned [`Utf8PathBuf`] with `path` adjoined to `self`.
@@ -1073,11 +1095,20 @@ impl Utf8Path {
 
     /// Converts a `Box<Utf8Path>` into a [`Utf8PathBuf`] without copying or allocating.
     pub fn into_path_buf(self: Box<Utf8Path>) -> Utf8PathBuf {
-        unsafe { Utf8PathBuf(Box::from_raw(Box::into_raw(self) as *mut Path).into_path_buf()) }
+        let ptr = Box::into_raw(self) as *mut Path;
+        // SAFETY:
+        // * self is valid UTF-8
+        // * ptr was constructed by consuming self so it represents an owned path.
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from a *mut Utf8Path to a
+        //   *mut Path is valid.
+        let boxed_path = unsafe { Box::from_raw(ptr) };
+        Utf8PathBuf(boxed_path.into_path_buf())
     }
 
     // invariant: Path must be guaranteed to be utf-8 data
     unsafe fn assume_utf8(path: &Path) -> &Utf8Path {
+        // SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a
+        // *const Path to a *const Utf8Path is valid.
         &*(path as *const Path as *const Utf8Path)
     }
 }
@@ -1108,9 +1139,11 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
     type Item = &'a Utf8Path;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0
-            .next()
-            .map(|path| unsafe { Utf8Path::assume_utf8(path) })
+        self.0.next().map(|path| {
+            // SAFETY: Utf8Ancestors was constructed from a Utf8Path, so it is guaranteed to
+            // be valid UTF-8
+            unsafe { Utf8Path::assume_utf8(path) }
+        })
     }
 }
 
@@ -1152,6 +1185,8 @@ impl<'a> Utf8Components<'a> {
     /// assert_eq!(Utf8Path::new("foo/bar.txt"), components.as_path());
     /// ```
     pub fn as_path(&self) -> &'a Utf8Path {
+        // SAFETY: Utf8Components was constructed from a Utf8Path, so it is guaranteed to be valid
+        // UTF-8
         unsafe { Utf8Path::assume_utf8(self.0.as_path()) }
     }
 }
@@ -1160,9 +1195,11 @@ impl<'a> Iterator for Utf8Components<'a> {
     type Item = Utf8Component<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0
-            .next()
-            .map(|component| unsafe { Utf8Component::new(component) })
+        self.0.next().map(|component| {
+            // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
+            // valid UTF-8
+            unsafe { Utf8Component::new(component) }
+        })
     }
 }
 
@@ -1170,9 +1207,11 @@ impl<'a> FusedIterator for Utf8Components<'a> {}
 
 impl<'a> DoubleEndedIterator for Utf8Components<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0
-            .next_back()
-            .map(|component| unsafe { Utf8Component::new(component) })
+        self.0.next_back().map(|component| {
+            // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
+            // valid UTF-8
+            unsafe { Utf8Component::new(component) }
+        })
     }
 }
 
@@ -1294,6 +1333,8 @@ impl<'a> Utf8Component<'a> {
     /// assert_eq!(&components, &[".", "tmp", "foo", "bar.txt"]);
     /// ```
     pub fn as_str(&self) -> &'a str {
+        // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
+        // valid UTF-8
         unsafe { assume_utf8(self.as_os_str()) }
     }
 
@@ -1339,6 +1380,8 @@ impl<'a> Utf8PrefixComponent<'a> {
     // TODO kind
 
     pub fn as_str(&self) -> &'a str {
+        // SAFETY: Utf8PrefixComponent was constructed from a Utf8Path, so it is guaranteed to be
+        // valid UTF-8
         unsafe { assume_utf8(self.as_os_str()) }
     }
 
@@ -1410,14 +1453,26 @@ impl<'a> From<Utf8PathBuf> for Cow<'a, Utf8Path> {
 impl From<Utf8PathBuf> for Arc<Utf8Path> {
     fn from(path: Utf8PathBuf) -> Arc<Utf8Path> {
         let arc: Arc<Path> = Arc::from(path.0);
-        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const Utf8Path) }
+        let ptr = Arc::into_raw(arc) as *const Utf8Path;
+        // SAFETY:
+        // * path is valid UTF-8
+        // * ptr was created by consuming an Arc<Path> so it represents an arced pointer
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+        //   *const Utf8Path is valid
+        unsafe { Arc::from_raw(ptr) }
     }
 }
 
 impl From<Utf8PathBuf> for Rc<Utf8Path> {
     fn from(path: Utf8PathBuf) -> Rc<Utf8Path> {
         let rc: Rc<Path> = Rc::from(path.0);
-        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const Utf8Path) }
+        let ptr = Rc::into_raw(rc) as *const Utf8Path;
+        // SAFETY:
+        // * path is valid UTF-8
+        // * ptr was created by consuming an Rc<Path> so it represents an rced pointer
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+        //   *const Utf8Path is valid
+        unsafe { Rc::from_raw(ptr) }
     }
 }
 
