@@ -5,7 +5,9 @@ use std::{
     borrow::{Borrow, Cow},
     cmp::Ordering,
     ffi::{OsStr, OsString},
-    fmt, fs, io,
+    fmt, fs,
+    hash::{Hash, Hasher},
+    io,
     iter::FusedIterator,
     ops::Deref,
     path::*,
@@ -59,7 +61,7 @@ use std::{
 ///
 /// Which method works best depends on what kind of situation you're in.
 // NB: Internal PathBuf must only contain utf8 data
-#[derive(Clone, Default, Hash)]
+#[derive(Clone, Default)]
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
 
@@ -389,7 +391,6 @@ impl<P: AsRef<Utf8Path>> Extend<P> for Utf8PathBuf {
 /// ```
 // NB: Internal Path must only contain utf8 data
 #[repr(transparent)]
-#[derive(Hash)]
 pub struct Utf8Path(Path);
 
 impl Utf8Path {
@@ -1261,7 +1262,7 @@ impl<'a> DoubleEndedIterator for Iter<'a> {
 
 impl FusedIterator for Iter<'_> {}
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum Utf8Component<'a> {
     Prefix(Utf8PrefixComponent<'a>),
     RootDir,
@@ -1510,6 +1511,12 @@ impl PartialEq for Utf8PathBuf {
 
 impl Eq for Utf8PathBuf {}
 
+impl Hash for Utf8PathBuf {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.hash(state)
+    }
+}
+
 impl PartialEq for Utf8Path {
     fn eq(&self, other: &Utf8Path) -> bool {
         self.components().eq(other.components())
@@ -1517,6 +1524,14 @@ impl PartialEq for Utf8Path {
 }
 
 impl Eq for Utf8Path {}
+
+impl Hash for Utf8Path {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for component in self.components() {
+            component.hash(state)
+        }
+    }
+}
 
 impl PartialOrd for Utf8Path {
     fn partial_cmp(&self, other: &Utf8Path) -> Option<Ordering> {
