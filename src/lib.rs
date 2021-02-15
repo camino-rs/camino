@@ -143,7 +143,7 @@ impl Utf8PathBuf {
     /// assert_eq!(Utf8Path::new("/test"), p.as_path());
     /// ```
     pub fn as_path(&self) -> &Utf8Path {
-        unsafe { Utf8Path::assert_utf8(&*self.0) }
+        unsafe { Utf8Path::assume_utf8(&*self.0) }
     }
 
     /// Extends `self` with `path`.
@@ -417,7 +417,7 @@ impl Utf8Path {
     /// assert_eq!(from_string, from_path);
     /// ```
     pub fn new(s: &(impl AsRef<str> + ?Sized)) -> &Utf8Path {
-        unsafe { Utf8Path::assert_utf8(Path::new(s.as_ref())) }
+        unsafe { Utf8Path::assume_utf8(Path::new(s.as_ref())) }
     }
 
     /// Converts a [`Path`] to a `Utf8Path`.
@@ -464,7 +464,7 @@ impl Utf8Path {
     ///
     /// [`str`]: str
     pub fn as_str(&self) -> &str {
-        unsafe { assert_utf8(self.as_os_str()) }
+        unsafe { assume_utf8(self.as_os_str()) }
     }
 
     /// Yields the underlying [`OsStr`] slice.
@@ -574,7 +574,7 @@ impl Utf8Path {
     pub fn parent(&self) -> Option<&Utf8Path> {
         self.0
             .parent()
-            .map(|path| unsafe { Utf8Path::assert_utf8(path) })
+            .map(|path| unsafe { Utf8Path::assume_utf8(path) })
     }
 
     /// Produces an iterator over `Utf8Path` and its ancestors.
@@ -629,7 +629,7 @@ impl Utf8Path {
     /// assert_eq!(None, Utf8Path::new("/").file_name());
     /// ```
     pub fn file_name(&self) -> Option<&str> {
-        self.0.file_name().map(|s| unsafe { assert_utf8(s) })
+        self.0.file_name().map(|s| unsafe { assume_utf8(s) })
     }
 
     /// Returns a path that, when joined onto `base`, yields `self`.
@@ -663,7 +663,7 @@ impl Utf8Path {
     pub fn strip_prefix(&self, base: impl AsRef<Path>) -> Result<&Utf8Path, StripPrefixError> {
         self.0
             .strip_prefix(base)
-            .map(|path| unsafe { Utf8Path::assert_utf8(path) })
+            .map(|path| unsafe { Utf8Path::assume_utf8(path) })
     }
 
     /// Determines whether `base` is a prefix of `self`.
@@ -734,7 +734,7 @@ impl Utf8Path {
     /// assert_eq!("foo.tar", Utf8Path::new("foo.tar.gz").file_stem().unwrap());
     /// ```
     pub fn file_stem(&self) -> Option<&str> {
-        self.0.file_stem().map(|s| unsafe { assert_utf8(s) })
+        self.0.file_stem().map(|s| unsafe { assume_utf8(s) })
     }
 
     /// Extracts the extension of [`self.file_name`], if possible.
@@ -757,7 +757,7 @@ impl Utf8Path {
     /// assert_eq!("gz", Utf8Path::new("foo.tar.gz").extension().unwrap());
     /// ```
     pub fn extension(&self) -> Option<&str> {
-        self.0.extension().map(|s| unsafe { assert_utf8(s) })
+        self.0.extension().map(|s| unsafe { assume_utf8(s) })
     }
 
     /// Creates an owned [`Utf8PathBuf`] with `path` adjoined to `self`.
@@ -1077,7 +1077,7 @@ impl Utf8Path {
     }
 
     // invariant: Path must be guaranteed to be utf-8 data
-    unsafe fn assert_utf8(path: &Path) -> &Utf8Path {
+    unsafe fn assume_utf8(path: &Path) -> &Utf8Path {
         &*(path as *const Path as *const Utf8Path)
     }
 }
@@ -1110,7 +1110,7 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         self.0
             .next()
-            .map(|path| unsafe { Utf8Path::assert_utf8(path) })
+            .map(|path| unsafe { Utf8Path::assume_utf8(path) })
     }
 }
 
@@ -1152,7 +1152,7 @@ impl<'a> Utf8Components<'a> {
     /// assert_eq!(Utf8Path::new("foo/bar.txt"), components.as_path());
     /// ```
     pub fn as_path(&self) -> &'a Utf8Path {
-        unsafe { Utf8Path::assert_utf8(self.0.as_path()) }
+        unsafe { Utf8Path::assume_utf8(self.0.as_path()) }
     }
 }
 
@@ -1278,7 +1278,7 @@ impl<'a> Utf8Component<'a> {
             Component::RootDir => Utf8Component::RootDir,
             Component::CurDir => Utf8Component::CurDir,
             Component::ParentDir => Utf8Component::ParentDir,
-            Component::Normal(s) => Utf8Component::Normal(assert_utf8(s)),
+            Component::Normal(s) => Utf8Component::Normal(assume_utf8(s)),
         }
     }
 
@@ -1294,7 +1294,7 @@ impl<'a> Utf8Component<'a> {
     /// assert_eq!(&components, &[".", "tmp", "foo", "bar.txt"]);
     /// ```
     pub fn as_str(&self) -> &'a str {
-        unsafe { assert_utf8(self.as_os_str()) }
+        unsafe { assume_utf8(self.as_os_str()) }
     }
 
     /// Extracts the underlying [`OsStr`] slice.
@@ -1339,7 +1339,7 @@ impl<'a> Utf8PrefixComponent<'a> {
     // TODO kind
 
     pub fn as_str(&self) -> &'a str {
-        unsafe { assert_utf8(self.as_os_str()) }
+        unsafe { assume_utf8(self.as_os_str()) }
     }
 
     pub fn as_os_str(&self) -> &'a OsStr {
@@ -1594,6 +1594,6 @@ impl_cmp!(Cow<'a, Utf8Path>, &'b Utf8Path);
 impl_cmp!(Cow<'a, Utf8Path>, Utf8PathBuf);
 
 // invariant: OsStr must be guaranteed to be utf8 data
-unsafe fn assert_utf8(string: &OsStr) -> &str {
+unsafe fn assume_utf8(string: &OsStr) -> &str {
     &*(string as *const OsStr as *const str)
 }
