@@ -15,3 +15,13 @@ Instead, camino allows the user to assume that their paths are Utf8 *once*, and 
 as utf8 encoded paths from them on, avoiding repeated lossy and confusing conversions.
 
 Most of the API is still TODO.
+
+# Rust version support
+
+The minimum supported Rust version (MSRV) is **1.44**. This project is tested in CI against the latest stable version of
+Rust and the MSRV.
+
+# License
+
+This project is available under the terms of either the [Apache 2.0 license](LICENSE-APACHE) or the [MIT
+license](LICENSE-MIT).
