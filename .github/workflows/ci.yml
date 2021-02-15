@@ -19,6 +19,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          override: true
           components: rustfmt, clippy
       - name: Lint (clippy)
         uses: actions-rs/cargo@v1
@@ -49,10 +50,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust-version }}
-
-      # Build all packages we care about one by one to ensure feature unification
-      # doesn't happen.
-      # Build all targets to ensure examples are built as well.
+          override: true
       - name: Build
         uses: actions-rs/cargo@v1
         with:

@@ -14,12 +14,17 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          override: true
       - name: Build rustdoc
         uses: actions-rs/cargo@v1
         with:
           command: doc
           # cargo-compare currently pulls in cargo which bloats build times massively
           args: --all-features --workspace
+      - name: Organize
+        run: |
+          mkdir target/gh-pages
+          mv target/doc target/gh-pages/rustdoc
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
