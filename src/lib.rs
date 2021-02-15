@@ -1,3 +1,6 @@
+// Copyright (c) The camino Contributors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use std::{
     borrow::{Borrow, Cow},
     cmp::Ordering,
@@ -883,7 +886,9 @@ impl Utf8Path {
     /// assert_eq!(it.next(), None)
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter { inner: self.components() }
+        Iter {
+            inner: self.components(),
+        }
     }
 
     /// Queries the file system to get information about a file, directory, etc.
@@ -1197,7 +1202,9 @@ impl fmt::Debug for Iter<'_> {
             }
         }
 
-        f.debug_tuple("Iter").field(&DebugHelper(self.as_path())).finish()
+        f.debug_tuple("Iter")
+            .field(&DebugHelper(self.as_path()))
+            .finish()
     }
 }
 
