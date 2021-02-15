@@ -15,7 +15,7 @@
 //!   have been converted to Unicode at this point.
 //! * Unicode is the common subset of supported paths across Windows and Unix platforms. (On Windows, Rust stores paths
 //!   as [an extension to UTF-8](https://simonsapin.github.io/wtf-8/), and converts them to UTF-16 at Win32
-//!   API boundaries.
+//!   API boundaries.)
 //! * There are already many systems, such as Cargo, that only support UTF-8 paths. If your own tool interacts with any such
 //!   system, you can assume that paths are valid UTF-8 without creating any additional burdens on consumers.
 //! * The ["makefile problem"](https://www.mercurial-scm.org/wiki/EncodingStrategy#The_.22makefile_problem.22)
