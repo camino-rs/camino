@@ -1151,6 +1151,19 @@ impl Utf8Path {
     }
 }
 
+impl Clone for Box<Utf8Path> {
+    fn clone(&self) -> Self {
+        let boxed: Box<Path> = self.0.into();
+        let ptr = Box::into_raw(boxed) as *mut Utf8Path;
+        // SAFETY:
+        // * self is valid UTF-8
+        // * ptr was created by consuming a Box<Path> so it represents an rced pointer
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from *mut Path to
+        //   *mut Utf8Path is valid
+        unsafe { Box::from_raw(ptr) }
+    }
+}
+
 impl fmt::Display for Utf8Path {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self.as_str(), f)
