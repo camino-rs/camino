@@ -35,6 +35,7 @@
 use std::{
     borrow::{Borrow, Cow},
     cmp::Ordering,
+    convert::Infallible,
     ffi::{OsStr, OsString},
     fmt, fs,
     hash::{Hash, Hasher},
@@ -43,6 +44,7 @@ use std::{
     ops::Deref,
     path::*,
     rc::Rc,
+    str::FromStr,
     sync::Arc,
 };
 
@@ -1650,6 +1652,14 @@ impl From<String> for Utf8PathBuf {
 impl From<&str> for Utf8PathBuf {
     fn from(s: &str) -> Utf8PathBuf {
         Utf8PathBuf(s.into())
+    }
+}
+
+impl FromStr for Utf8PathBuf {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Utf8PathBuf(s.into()))
     }
 }
 
