@@ -1667,17 +1667,17 @@ impl From<String> for Utf8PathBuf {
     }
 }
 
-impl From<&str> for Utf8PathBuf {
-    fn from(s: &str) -> Utf8PathBuf {
-        Utf8PathBuf(s.into())
-    }
-}
-
 impl FromStr for Utf8PathBuf {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Utf8PathBuf(s.into()))
+    }
+}
+
+impl<T: ?Sized + AsRef<str>> From<&T> for Utf8PathBuf {
+    fn from(s: &T) -> Utf8PathBuf {
+        Utf8PathBuf::from(s.as_ref().to_owned())
     }
 }
 
