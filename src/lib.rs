@@ -1583,7 +1583,7 @@ impl<'a> Utf8Prefix<'a> {
 /// # }
 /// ```
 ///
-/// [`as_os_str`]: Utf8PrefixComponent::as_os_str
+/// [`as_str`]: Utf8PrefixComponent::as_str
 /// [`kind`]: Utf8PrefixComponent::kind
 /// [`Prefix` variant]: Utf8Component::Prefix
 #[repr(transparent)]
