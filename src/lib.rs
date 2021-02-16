@@ -1826,6 +1826,18 @@ impl Hash for Utf8PathBuf {
     }
 }
 
+impl PartialOrd for Utf8PathBuf {
+    fn partial_cmp(&self, other: &Utf8PathBuf) -> Option<Ordering> {
+        self.components().partial_cmp(other.components())
+    }
+}
+
+impl Ord for Utf8PathBuf {
+    fn cmp(&self, other: &Utf8PathBuf) -> Ordering {
+        self.components().cmp(other.components())
+    }
+}
+
 impl PartialEq for Utf8Path {
     fn eq(&self, other: &Utf8Path) -> bool {
         self.components().eq(other.components())
@@ -1845,6 +1857,12 @@ impl Hash for Utf8Path {
 impl PartialOrd for Utf8Path {
     fn partial_cmp(&self, other: &Utf8Path) -> Option<Ordering> {
         self.components().partial_cmp(other.components())
+    }
+}
+
+impl Ord for Utf8Path {
+    fn cmp(&self, other: &Utf8Path) -> Ordering {
+        self.components().cmp(other.components())
     }
 }
 
