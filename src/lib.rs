@@ -1401,19 +1401,166 @@ impl<'a> fmt::Display for Utf8Component<'a> {
     }
 }
 
+/// Windows path prefixes, e.g., `C:` or `\\server\share`.
+///
+/// Windows uses a variety of path prefix styles, including references to drive
+/// volumes (like `C:`), network shared folders (like `\\server\share`), and
+/// others. In addition, some path prefixes are "verbatim" (i.e., prefixed with
+/// `\\?\`), in which case `/` is *not* treated as a separator and essentially
+/// no normalization is performed.
+///
+/// # Examples
+///
+/// ```
+/// use camino::{Utf8Component, Utf8Path, Utf8Prefix};
+/// use camino::Utf8Prefix::*;
+///
+/// fn get_path_prefix(s: &str) -> Utf8Prefix {
+///     let path = Utf8Path::new(s);
+///     match path.components().next().unwrap() {
+///         Utf8Component::Prefix(prefix_component) => prefix_component.kind(),
+///         _ => panic!(),
+///     }
+/// }
+///
+/// # if cfg!(windows) {
+/// assert_eq!(Verbatim("pictures"), get_path_prefix(r"\\?\pictures\kittens"));
+/// assert_eq!(VerbatimUNC("server", "share"), get_path_prefix(r"\\?\UNC\server\share"));
+/// assert_eq!(VerbatimDisk(b'C'), get_path_prefix(r"\\?\c:\"));
+/// assert_eq!(DeviceNS("BrainInterface"), get_path_prefix(r"\\.\BrainInterface"));
+/// assert_eq!(UNC("server", "share"), get_path_prefix(r"\\server\share"));
+/// assert_eq!(Disk(b'C'), get_path_prefix(r"C:\Users\Rust\Pictures\Ferris"));
+/// # }
+/// ```
+#[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub enum Utf8Prefix<'a> {
+    /// Verbatim prefix, e.g., `\\?\cat_pics`.
+    ///
+    /// Verbatim prefixes consist of `\\?\` immediately followed by the given
+    /// component.
+    Verbatim(&'a str),
+
+    /// Verbatim prefix using Windows' _**U**niform **N**aming **C**onvention_,
+    /// e.g., `\\?\UNC\server\share`.
+    ///
+    /// Verbatim UNC prefixes consist of `\\?\UNC\` immediately followed by the
+    /// server's hostname and a share name.
+    VerbatimUNC(&'a str, &'a str),
+
+    /// Verbatim disk prefix, e.g., `\\?\C:`.
+    ///
+    /// Verbatim disk prefixes consist of `\\?\` immediately followed by the
+    /// drive letter and `:`.
+    VerbatimDisk(u8),
+
+    /// Device namespace prefix, e.g., `\\.\COM42`.
+    ///
+    /// Device namespace prefixes consist of `\\.\` immediately followed by the
+    /// device name.
+    DeviceNS(&'a str),
+
+    /// Prefix using Windows' _**U**niform **N**aming **C**onvention_, e.g.
+    /// `\\server\share`.
+    ///
+    /// UNC prefixes consist of the server's hostname and a share name.
+    UNC(&'a str, &'a str),
+
+    /// Prefix `C:` for the given disk drive.
+    Disk(u8),
+}
+
+impl<'a> Utf8Prefix<'a> {
+    /// Determines if the prefix is verbatim, i.e., begins with `\\?\`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Prefix::*;
+    ///
+    /// assert!(Verbatim("pictures").is_verbatim());
+    /// assert!(VerbatimUNC("server", "share").is_verbatim());
+    /// assert!(VerbatimDisk(b'C').is_verbatim());
+    /// assert!(!DeviceNS("BrainInterface").is_verbatim());
+    /// assert!(!UNC("server", "share").is_verbatim());
+    /// assert!(!Disk(b'C').is_verbatim());
+    /// ```
+    pub fn is_verbatim(&self) -> bool {
+        use Utf8Prefix::*;
+        matches!(*self, Verbatim(_) | VerbatimDisk(_) | VerbatimUNC(..))
+    }
+}
+
+/// A structure wrapping a Windows path prefix as well as its unparsed string
+/// representation.
+///
+/// In addition to the parsed [`Prefix`] information returned by [`kind`],
+/// `PrefixComponent` also holds the raw and unparsed [`OsStr`] slice,
+/// returned by [`as_os_str`].
+///
+/// Instances of this `struct` can be obtained by matching against the
+/// [`Prefix` variant] on [`Component`].
+///
+/// Does not occur on Unix.
+///
+/// # Examples
+///
+/// ```
+/// # if cfg!(windows) {
+/// use camino::{Utf8Component, Utf8Path, Utf8Prefix};
+/// use std::ffi::OsStr;
+///
+/// let path = Utf8Path::new(r"c:\you\later\");
+/// match path.components().next().unwrap() {
+///     Utf8Component::Prefix(prefix_component) => {
+///         assert_eq!(Utf8Prefix::Disk(b'C'), prefix_component.kind());
+///         assert_eq!("c:", prefix_component.as_str());
+///     }
+///     _ => unreachable!(),
+/// }
+/// # }
+/// ```
+///
+/// [`as_os_str`]: Utf8PrefixComponent::as_os_str
+/// [`kind`]: Utf8PrefixComponent::kind
+/// [`Prefix` variant]: Utf8Component::Prefix
 #[repr(transparent)]
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Utf8PrefixComponent<'a>(PrefixComponent<'a>);
 
 impl<'a> Utf8PrefixComponent<'a> {
-    // TODO kind
+    /// Returns the parsed prefix data.
+    ///
+    /// See [`Utf8Prefix`]'s documentation for more information on the different
+    /// kinds of prefixes.
+    pub fn kind(&self) -> Utf8Prefix<'a> {
+        // SAFETY for all the below unsafe blocks: the path self was originally constructed from was
+        // UTF-8 so any parts of it are valid UTF-8
+        match self.0.kind() {
+            Prefix::Verbatim(prefix) => Utf8Prefix::Verbatim(unsafe { assume_utf8(prefix) }),
+            Prefix::VerbatimUNC(server, share) => {
+                let server = unsafe { assume_utf8(server) };
+                let share = unsafe { assume_utf8(share) };
+                Utf8Prefix::VerbatimUNC(server, share)
+            }
+            Prefix::VerbatimDisk(drive) => Utf8Prefix::VerbatimDisk(drive),
+            Prefix::DeviceNS(prefix) => Utf8Prefix::DeviceNS(unsafe { assume_utf8(prefix) }),
+            Prefix::UNC(server, share) => {
+                let server = unsafe { assume_utf8(server) };
+                let share = unsafe { assume_utf8(share) };
+                Utf8Prefix::UNC(server, share)
+            }
+            Prefix::Disk(drive) => Utf8Prefix::Disk(drive),
+        }
+    }
 
+    /// Returns the [`str`] slice for this prefix.
     pub fn as_str(&self) -> &'a str {
         // SAFETY: Utf8PrefixComponent was constructed from a Utf8Path, so it is guaranteed to be
         // valid UTF-8
         unsafe { assume_utf8(self.as_os_str()) }
     }
 
+    /// Returns the raw [`OsStr`] slice for this prefix.
     pub fn as_os_str(&self) -> &'a OsStr {
         self.0.as_os_str()
     }
@@ -1430,6 +1577,8 @@ impl<'a> fmt::Display for Utf8PrefixComponent<'a> {
         fmt::Display::fmt(self.as_str(), f)
     }
 }
+
+// ---
 
 impl From<String> for Utf8PathBuf {
     fn from(string: String) -> Utf8PathBuf {
