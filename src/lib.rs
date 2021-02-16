@@ -1693,6 +1693,12 @@ impl From<Box<Utf8Path>> for Utf8PathBuf {
     }
 }
 
+impl From<Utf8PathBuf> for Box<Utf8Path> {
+    fn from(path: Utf8PathBuf) -> Box<Utf8Path> {
+        path.into_boxed_path()
+    }
+}
+
 impl<'a> From<Cow<'a, Utf8Path>> for Utf8PathBuf {
     fn from(path: Cow<'a, Utf8Path>) -> Utf8PathBuf {
         path.into_owned()
