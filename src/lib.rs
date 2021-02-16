@@ -1493,12 +1493,12 @@ impl<'a> Utf8Prefix<'a> {
 /// A structure wrapping a Windows path prefix as well as its unparsed string
 /// representation.
 ///
-/// In addition to the parsed [`Prefix`] information returned by [`kind`],
-/// `PrefixComponent` also holds the raw and unparsed [`OsStr`] slice,
-/// returned by [`as_os_str`].
+/// In addition to the parsed [`Utf8Prefix`] information returned by [`kind`],
+/// `Utf8PrefixComponent` also holds the raw and unparsed [`str`] slice,
+/// returned by [`as_str`].
 ///
 /// Instances of this `struct` can be obtained by matching against the
-/// [`Prefix` variant] on [`Component`].
+/// [`Prefix` variant] on [`Utf8Component`].
 ///
 /// Does not occur on Unix.
 ///
