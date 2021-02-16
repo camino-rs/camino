@@ -48,6 +48,9 @@ use std::{
     sync::Arc,
 };
 
+#[cfg(feature = "serde1")]
+mod serde_impls;
+
 /// An owned, mutable UTF-8 path (akin to [`String`]).
 ///
 /// This type provides methods like [`push`] and [`set_extension`] that mutate
@@ -95,6 +98,8 @@ use std::{
 /// Which method works best depends on what kind of situation you're in.
 // NB: Internal PathBuf must only contain utf8 data
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde1", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde1", serde(transparent))]
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
 
@@ -1896,6 +1901,50 @@ impl_cmp!(Utf8PathBuf, &'a Utf8Path);
 impl_cmp!(Cow<'a, Utf8Path>, Utf8Path);
 impl_cmp!(Cow<'a, Utf8Path>, &'b Utf8Path);
 impl_cmp!(Cow<'a, Utf8Path>, Utf8PathBuf);
+
+macro_rules! impl_cmp_str {
+    ($lhs:ty, $rhs: ty) => {
+        impl<'a, 'b> PartialEq<$rhs> for $lhs {
+            #[inline]
+            fn eq(&self, other: &$rhs) -> bool {
+                <Utf8Path as PartialEq>::eq(self, Utf8Path::new(other))
+            }
+        }
+
+        // impl<'a, 'b> PartialEq<$lhs> for $rhs {
+        //     #[inline]
+        //     fn eq(&self, other: &$lhs) -> bool {
+        //         <Utf8Path as PartialEq>::eq(self.as_ref(), other)
+        //     }
+        // }
+        //
+        impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
+                <Utf8Path as PartialOrd>::partial_cmp(self, Utf8Path::new(other))
+            }
+        }
+
+        // impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+        //     #[inline]
+        //     fn partial_cmp(&self, other: &$lhs) -> Option<cmp::Ordering> {
+        //         <Utf8Path as PartialOrd>::partial_cmp(self.as_ref(), other)
+        //     }
+        // }
+    };
+}
+
+impl_cmp_str!(Utf8PathBuf, str);
+impl_cmp_str!(Utf8PathBuf, &'a str);
+impl_cmp_str!(Utf8PathBuf, Cow<'a, str>);
+impl_cmp_str!(Utf8PathBuf, String);
+impl_cmp_str!(Utf8Path, str);
+impl_cmp_str!(Utf8Path, &'a str);
+impl_cmp_str!(Utf8Path, Cow<'a, str>);
+impl_cmp_str!(Utf8Path, String);
+impl_cmp_str!(&'a Utf8Path, str);
+impl_cmp_str!(&'a Utf8Path, Cow<'b, str>);
+impl_cmp_str!(&'a Utf8Path, String);
 
 // invariant: OsStr must be guaranteed to be utf8 data
 unsafe fn assume_utf8(string: &OsStr) -> &str {

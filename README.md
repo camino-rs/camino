@@ -27,6 +27,12 @@ as  necessary. However, because this invariant is not encoded in the `Path` type
 Instead, `camino` allows you to check that your paths are UTF-8 *once*, and then manipulate them
 as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
+## Optional features
+
+By default, `camino` has **no dependencies** other than `std`. There are some optional features that enable
+dependencies:
+* `serde1` adds serde `Serialize` and `Deserialize` impls for `Utf8PathBuf` and `Utf8Path` (zero-copy).
+
 ## Rust version support
 
 The minimum supported Rust version (MSRV) is **1.44**. This project is tested in CI against the latest stable version of
