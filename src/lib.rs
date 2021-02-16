@@ -1681,6 +1681,12 @@ impl<T: ?Sized + AsRef<str>> From<&T> for Utf8PathBuf {
     }
 }
 
+impl<'a> From<&'a str> for &'a Utf8Path {
+    fn from(s: &'a str) -> &'a Utf8Path {
+        Utf8Path::new(s)
+    }
+}
+
 impl From<Box<Utf8Path>> for Utf8PathBuf {
     fn from(path: Box<Utf8Path>) -> Utf8PathBuf {
         path.into_path_buf()
