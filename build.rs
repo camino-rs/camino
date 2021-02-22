@@ -25,8 +25,6 @@ fn main() {
 
 struct Compiler {
     minor: u32,
-    #[allow(dead_code)]
-    nightly: bool,
 }
 
 fn rustc_version() -> Option<Compiler> {
@@ -38,6 +36,5 @@ fn rustc_version() -> Option<Compiler> {
         return None;
     }
     let minor = pieces.next()?.parse().ok()?;
-    let nightly = version.contains("nightly");
-    Some(Compiler { minor, nightly })
+    Some(Compiler { minor })
 }
