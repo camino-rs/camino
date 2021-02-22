@@ -1,24 +1,30 @@
 # camino - UTF-8 encoded paths
 
-`camino` is an extension of the `std::path` module that adds new `Utf8PathBuf` and `Utf8Path`
-types. These are like the standard library's `PathBuf` and `Path` types, except they are
-guaranteed to only contain UTF-8 encoded data. Therefore, they expose the ability to get their
+This repository contains the source code for `camino`, an extension of the `std::path` module that adds new
+`Utf8PathBuf` and `Utf8Path` types.
+
+## What is camino?
+
+`camino`'s `Utf8PathBuf` and `Utf8Path` types are like the standard library's `PathBuf` and `Path` types, except they
+are guaranteed to only contain UTF-8 encoded data. Therefore, they expose the ability to get their
 contents as strings, they implement `Display`, etc.
 
 The `std::path` types are not guaranteed to be valid UTF-8. This is the right decision for the standard library,
 since it must be as general as possible. However, on all platforms, non-Unicode paths are vanishingly uncommon for a
 number of reasons:
-* Unicode won. There are still some legacy codebases that store paths in encodings like Shift-JIS, but most
+* Unicode won. There are still some legacy codebases that store paths in encodings like [Shift JIS], but most
   have been converted to Unicode at this point.
 * Unicode is the common subset of supported paths across Windows and Unix platforms. (On Windows, Rust stores paths
   as [an extension to UTF-8](https://simonsapin.github.io/wtf-8/), and converts them to UTF-16 at Win32
   API boundaries.)
 * There are already many systems, such as Cargo, that only support UTF-8 paths. If your own tool interacts with any such
   system, you can assume that paths are valid UTF-8 without creating any additional burdens on consumers.
-* The ["makefile problem"](https://www.mercurial-scm.org/wiki/EncodingStrategy#The_.22makefile_problem.22)
-  (which also applies to `Cargo.toml`, and any other metadata file that lists the names of other files) has *no general,
-  cross-platform solution* in systems that support non-UTF-8 paths. However, restricting paths to UTF-8 eliminates
-  this problem.
+* The ["makefile problem"](https://www.mercurial-scm.org/wiki/EncodingStrategy#The_.22makefile_problem.22) asks: given a
+  Makefile or other metadata file (such as `Cargo.toml`) that lists the names of other files, how should the names in
+  the Makefile be matched with the ones on disk? This has *no general, cross-platform solution* in systems that support
+  non-UTF-8 paths. However, restricting paths to UTF-8 eliminates this problem.
+
+[Shift JIS]: https://en.wikipedia.org/wiki/Shift_JIS
 
 Therefore, many programs that want to manipulate paths *do* assume they contain UTF-8 data, and convert them to `str`s
 as  necessary. However, because this invariant is not encoded in the `Path` type, conversions such as
@@ -26,6 +32,34 @@ as  necessary. However, because this invariant is not encoded in the `Path` type
 
 Instead, `camino` allows you to check that your paths are UTF-8 *once*, and then manipulate them
 as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
+
+## Should you use camino?
+
+`camino` trades off some utility for a great deal of simplicity. Whether `camino` is appropriate for a project or not
+is ultimately a case-by-case decision. Here are some general guidelines that may help.
+
+*You should consider using camino if...*
+
+* **You're building portable, cross-platform software.** While both Unix and Windows platforms support different kinds
+  of non-Unicode paths, Unicode is the common subset that's supported across them.
+* **Your system has files that contain the names of other files.** If you don't use UTF-8 paths, you will run into the
+  makefile problem described above, which has no general, cross-platform solution.
+* **You're interacting with existing systems that already assume UTF-8 paths.** In that case you won't be adding any new
+  burdens on downstream consumers.
+* **You're building something brand new and are willing to ask your users to rename their paths if necessary.** Projects
+  that don't have to worry about legacy compatibility have more flexibility in choosing what paths they support.
+
+*You should **NOT** use camino, if...*
+
+* **You're writing a core system utility.** For example, if you're writing an `mv` or `cat` replacement, you should
+  **not** use camino. Instead, use `std::path::Path` and add extensive tests for non-UTF-8 paths.
+* **You have legacy compatibility constraints.** For example, Git supports non-UTF-8 paths. If your tool needs to handle
+  arbitrary Git repositories, it should use its own path type that's a wrapper around `Vec<u8>`. 
+  * `std::path::Path` supports arbitrary bytestrings [on Unix] but not on Windows.
+* **There's some other reason you need to support non-UTF-8 paths.** For example, disk recovery tools need to be able to
+  handle potentially corrupt filenames: only being able to handle UTF-8 paths would greatly diminish their utility.
+
+[on Unix]: https://doc.rust-lang.org/std/os/unix/ffi/index.html
 
 ## Optional features
 
