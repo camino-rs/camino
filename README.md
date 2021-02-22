@@ -51,12 +51,12 @@ is ultimately a case-by-case decision. Here are some general guidelines that may
 
 *You should **NOT** use camino, if...*
 
-* **You're writing a core system utility.** For example, if you're writing an `mv` or `cat` replacement, you should
+* **You're writing a core system utility.** If you're writing, say, an `mv` or `cat` replacement, you should
   **not** use camino. Instead, use `std::path::Path` and add extensive tests for non-UTF-8 paths.
 * **You have legacy compatibility constraints.** For example, Git supports non-UTF-8 paths. If your tool needs to handle
   arbitrary Git repositories, it should use its own path type that's a wrapper around `Vec<u8>`. 
   * `std::path::Path` supports arbitrary bytestrings [on Unix] but not on Windows.
-* **There's some other reason you need to support non-UTF-8 paths.** For example, disk recovery tools need to be able to
+* **There's some other reason you need to support non-UTF-8 paths.** Some tools like disk recovery utilities need to
   handle potentially corrupt filenames: only being able to handle UTF-8 paths would greatly diminish their utility.
 
 [on Unix]: https://doc.rust-lang.org/std/os/unix/ffi/index.html
