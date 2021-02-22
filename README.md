@@ -38,7 +38,7 @@ as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 `camino` is a very thin wrapper around the `std::path` modules. `Utf8Path` and `Utf8PathBuf` are drop-in replacements
 for `Path` and `PathBuf`.
 
-Most APIs are the same, but those at the boundary with `str` are different. Som examples:
+Most APIs are the same, but those at the boundary with `str` are different. Some examples:
 * `Path::to_str() -> Option<&str>` has been renamed to `Utf8Path::as_str() -> &str`.
 * `Utf8Path` implements `Display`, and `Path::display()` has been removed.
 * Iterating over a `Path` returns `&str`, not `&OsStr`.
