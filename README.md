@@ -33,6 +33,19 @@ as  necessary. However, because this invariant is not encoded in the `Path` type
 Instead, `camino` allows you to check that your paths are UTF-8 *once*, and then manipulate them
 as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
+## API design
+
+`camino` is a very thin wrapper around the `std::path` modules. `Utf8Path` and `Utf8PathBuf` are drop-in replacements
+for `Path` and `PathBuf`.
+
+Most APIs are the same, but those at the boundary with `str` are different. Som examples:
+* `Path::to_str() -> Option<&str>` has been renamed to `Utf8Path::as_str() -> &str`.
+* `Utf8Path` implements `Display`, and `Path::display()` has been removed.
+* Iterating over a `Path` returns `&str`, not `&OsStr`.
+
+Every `Utf8Path` is a valid `Path`, so `Utf8Path` implements `AsRef<Path>`. Any APIs that accept `impl AsRef<Path>`
+will continue to work with `Utf8Path` instances.
+
 ## Should you use camino?
 
 `camino` trades off some utility for a great deal of simplicity. Whether `camino` is appropriate for a project or not
@@ -71,13 +84,13 @@ dependencies:
 
 The minimum supported Rust version (MSRV) is **1.39**. This project is tested in CI against the latest stable version of
 Rust and the MSRV.
-
-**Within the same major version, the MSRV will never change.** This means that all versions of camino 1 will support
-Rust 1.39 and above.
 * *Stable APIs* added in later Rust versions are supported through conditional compilation in `build.rs`.
 * *Deprecations* are kept in sync with the version of Rust they're added in.
 * *Unstable APIs* are currently not supported. Please
   [file an issue on GitHub](https://github.com/sunshowers/camino/issues/new) if you need an unstable API.
+
+`camino` is designed to be a core library and has a conservative MSRV policy. MSRV changes will only happen for
+a compelling enough reason, and will involve at least a minor version bump.
 
 ## License
 
