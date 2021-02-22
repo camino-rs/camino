@@ -69,8 +69,15 @@ dependencies:
 
 ## Rust version support
 
-The minimum supported Rust version (MSRV) is **1.44**. This project is tested in CI against the latest stable version of
+The minimum supported Rust version (MSRV) is **1.39**. This project is tested in CI against the latest stable version of
 Rust and the MSRV.
+
+**Within the same major version, the MSRV will never change.** This means that all versions of camino 1 will support
+Rust 1.39 and above.
+* *Stable APIs* added in later Rust versions are supported through conditional compilation in `build.rs`.
+* *Deprecations* are kept in sync with the version of Rust they're added in.
+* *Unstable APIs* are currently not supported. Please
+  [file an issue on GitHub](https://github.com/sunshowers/camino/issues/new) if you need an unstable API.
 
 ## License
 

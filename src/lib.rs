@@ -151,6 +151,8 @@ impl Utf8PathBuf {
     /// Creates a new `Utf8PathBuf` with a given capacity used to create the internal [`PathBuf`].
     /// See [`with_capacity`] defined on [`PathBuf`].
     ///
+    /// *Requires Rust 1.44 or newer.*
+    ///
     /// # Examples
     ///
     /// ```
@@ -166,6 +168,7 @@ impl Utf8PathBuf {
     /// ```
     ///
     /// [`with_capacity`]: PathBuf::with_capacity
+    #[cfg(path_buf_capacity)]
     pub fn with_capacity(capacity: usize) -> Utf8PathBuf {
         Utf8PathBuf(PathBuf::with_capacity(capacity))
     }
@@ -344,35 +347,50 @@ impl Utf8PathBuf {
 
     /// Invokes [`capacity`] on the underlying instance of [`PathBuf`].
     ///
+    /// *Requires Rust 1.44 or newer.*
+    ///
     /// [`capacity`]: PathBuf::capacity
+    #[cfg(path_buf_capacity)]
     pub fn capacity(&self) -> usize {
         self.0.capacity()
     }
 
     /// Invokes [`clear`] on the underlying instance of [`PathBuf`].
     ///
+    /// *Requires Rust 1.44 or newer.*
+    ///
     /// [`clear`]: PathBuf::clear
+    #[cfg(path_buf_capacity)]
     pub fn clear(&mut self) {
         self.0.clear()
     }
 
     /// Invokes [`reserve`] on the underlying instance of [`PathBuf`].
     ///
+    /// *Requires Rust 1.44 or newer.*
+    ///
     /// [`reserve`]: PathBuf::reserve
+    #[cfg(path_buf_capacity)]
     pub fn reserve(&mut self, additional: usize) {
         self.0.reserve(additional)
     }
 
     /// Invokes [`reserve_exact`] on the underlying instance of [`PathBuf`].
     ///
+    /// *Requires Rust 1.44 or newer.*
+    ///
     /// [`reserve_exact`]: PathBuf::reserve_exact
+    #[cfg(path_buf_capacity)]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.0.reserve_exact(additional)
     }
 
     /// Invokes [`shrink_to_fit`] on the underlying instance of [`PathBuf`].
     ///
+    /// *Requires Rust 1.44 or newer.*
+    ///
     /// [`shrink_to_fit`]: PathBuf::shrink_to_fit
+    #[cfg(path_buf_capacity)]
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit()
     }
@@ -1567,7 +1585,10 @@ impl<'a> Utf8Prefix<'a> {
     /// ```
     pub fn is_verbatim(&self) -> bool {
         use Utf8Prefix::*;
-        matches!(*self, Verbatim(_) | VerbatimDisk(_) | VerbatimUNC(..))
+        match self {
+            Verbatim(_) | VerbatimDisk(_) | VerbatimUNC(..) => true,
+            _ => false,
+        }
     }
 }
 
