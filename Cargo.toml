@@ -4,7 +4,19 @@ description = "UTF-8 paths"
 version = "1.0.0"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+keywords = [
+    "paths",
+    "utf8",
+    "unicode",
+    "filesystem",
+]
+categories = [
+    "development-tools",
+    "filesystem",
+    "os",
+]
 repository = "https://github.com/withoutboats/camino"
+documentation = "https://docs.rs/camino"
 authors = [
     "Without Boats <saoirse@without.boats>",
     "Ashley Williams <ashley666ashley@gmail.com>",
