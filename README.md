@@ -6,12 +6,12 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE-MIT)
 
 This repository contains the source code for `camino`, an extension of the `std::path` module that adds new
-`Utf8PathBuf` and `Utf8Path` types.
+[`Utf8PathBuf`] and [`Utf8Path`] types.
 
 ## What is camino?
 
-`camino`'s `Utf8PathBuf` and `Utf8Path` types are like the standard library's `PathBuf` and `Path` types, except they
-are guaranteed to only contain UTF-8 encoded data. Therefore, they expose the ability to get their
+`camino`'s [`Utf8PathBuf`] and [`Utf8Path`] types are like the standard library's [`PathBuf`] and [`Path`] types, except
+they  are guaranteed to only contain UTF-8 encoded data. Therefore, they expose the ability to get their
 contents as strings, they implement `Display`, etc.
 
 The `std::path` types are not guaranteed to be valid UTF-8. This is the right decision for the standard library,
@@ -38,18 +38,24 @@ as  necessary. However, because this invariant is not encoded in the `Path` type
 Instead, `camino` allows you to check that your paths are UTF-8 *once*, and then manipulate them
 as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
+## Examples
+
+The documentation for [`Utf8PathBuf`] and [`Utf8Path`] contains several examples.
+
+For examples of how to use `camino` with other libraries like `serde` and `structopt`, see the [`examples`] directory. 
+
 ## API design
 
-`camino` is a very thin wrapper around `std::path`. `Utf8Path` and `Utf8PathBuf` are drop-in replacements
-for `Path` and `PathBuf`.
+`camino` is a very thin wrapper around `std::path`. [`Utf8Path`] and [`Utf8PathBuf`] are drop-in replacements
+for [`Path`] and [`PathBuf`].
 
 Most APIs are the same, but those at the boundary with `str` are different. Some examples:
 * `Path::to_str() -> Option<&str>` has been renamed to `Utf8Path::as_str() -> &str`.
-* `Utf8Path` implements `Display`, and `Path::display()` has been removed.
-* Iterating over a `Path` returns `&str`, not `&OsStr`.
+* [`Utf8Path`] implements `Display`, and `Path::display()` has been removed.
+* Iterating over a [`Path`] returns `&str`, not `&OsStr`.
 
-Every `Utf8Path` is a valid `Path`, so `Utf8Path` implements `AsRef<Path>`. Any APIs that accept `impl AsRef<Path>`
-will continue to work with `Utf8Path` instances.
+Every [`Utf8Path`] is a valid [`Path`], so [`Utf8Path`] implements `AsRef<Path>`. Any APIs that accept `impl AsRef<Path>`
+will continue to work with [`Utf8Path`] instances.
 
 ## Should you use camino?
 
@@ -70,10 +76,10 @@ is ultimately a case-by-case decision. Here are some general guidelines that may
 *You should **NOT** use camino, if...*
 
 * **You're writing a core system utility.** If you're writing, say, an `mv` or `cat` replacement, you should
-  **not** use camino. Instead, use `std::path::Path` and add extensive tests for non-UTF-8 paths.
+  **not** use camino. Instead, use [`std::path::Path`] and add extensive tests for non-UTF-8 paths.
 * **You have legacy compatibility constraints.** For example, Git supports non-UTF-8 paths. If your tool needs to handle
   arbitrary Git repositories, it should use its own path type that's a wrapper around `Vec<u8>`. 
-  * `std::path::Path` supports arbitrary bytestrings [on Unix] but not on Windows.
+  * [`std::path::Path`] supports arbitrary bytestrings [on Unix] but not on Windows.
 * **There's some other reason you need to support non-UTF-8 paths.** Some tools like disk recovery utilities need to
   handle potentially corrupt filenames: only being able to handle UTF-8 paths would greatly diminish their utility.
 
@@ -83,7 +89,7 @@ is ultimately a case-by-case decision. Here are some general guidelines that may
 
 By default, `camino` has **no dependencies** other than `std`. There are some optional features that enable
 dependencies:
-* `serde1` adds serde `Serialize` and `Deserialize` impls for `Utf8PathBuf` and `Utf8Path` (zero-copy).
+* `serde1` adds serde [`Serialize`] and [`Deserialize`] impls for [`Utf8PathBuf`] and [`Utf8Path`] (zero-copy).
 
 ## Rust version support
 
@@ -107,3 +113,12 @@ license](LICENSE-MIT).
 This project's documentation is adapted from [The Rust Programming Language](https://github.com/rust-lang/rust/), which is
 available under the terms of either the [Apache 2.0 license](https://github.com/rust-lang/rust/blob/master/LICENSE-APACHE)
 or the [MIT license](https://github.com/rust-lang/rust/blob/master/LICENSE-MIT).
+
+[`Utf8PathBuf`]: https://docs.rs/camino/*/camino/struct.Utf8PathBuf.html
+[`Utf8Path`]: https://docs.rs/camino/*/camino/struct.Utf8Path.html
+[`PathBuf`]: https://doc.rust-lang.org/std/path/struct.PathBuf.html
+[`Path`]: https://doc.rust-lang.org/std/path/struct.Path.html
+[`std::path::Path`]: https://doc.rust-lang.org/std/path/struct.Path.html
+[`Serialize`]: https://docs.rs/serde/1/serde/trait.Serialize.html
+[`Deserialize`]: https://docs.rs/serde/1/serde/trait.Deserialize.html
+[`examples`]: https://github.com/withoutboats/camino/tree/master/examples
