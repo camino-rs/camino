@@ -40,7 +40,7 @@ as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
 ## API design
 
-`camino` is a very thin wrapper around the `std::path` modules. `Utf8Path` and `Utf8PathBuf` are drop-in replacements
+`camino` is a very thin wrapper around `std::path`. `Utf8Path` and `Utf8PathBuf` are drop-in replacements
 for `Path` and `PathBuf`.
 
 Most APIs are the same, but those at the boundary with `str` are different. Some examples:
