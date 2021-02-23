@@ -12,6 +12,10 @@ authors = [
     "Rain <rain@sunshowers.io>"
 ]
 edition = "2018"
+exclude = [
+    ".cargo/**/*",
+    ".github/**/*",
+]
 
 [package.metadata.docs.rs]
 all-features = true
