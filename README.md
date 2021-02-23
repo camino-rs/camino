@@ -98,3 +98,7 @@ Optional features may pull in dependencies that require a newer version of Rust.
 
 This project is available under the terms of either the [Apache 2.0 license](LICENSE-APACHE) or the [MIT
 license](LICENSE-MIT).
+
+This project's documentation is adapted from [The Rust Programming Language](https://github.com/rust-lang/rust/), which is
+available under the terms of either the [Apache 2.0 license](https://github.com/rust-lang/rust/blob/master/LICENSE-APACHE)
+or the [MIT license](https://github.com/rust-lang/rust/blob/master/LICENSE-MIT).
