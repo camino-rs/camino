@@ -1,5 +1,10 @@
 # camino - UTF-8 encoded paths
 
+[![camino on crates.io](https://img.shields.io/crates/v/camino)](https://crates.io/crates/camino)
+[![Documentation (latest release)](https://docs.rs/camino/badge.svg)](https://docs.rs/camino)
+[![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE-APACHE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE-MIT)
+
 This repository contains the source code for `camino`, an extension of the `std::path` module that adds new
 `Utf8PathBuf` and `Utf8Path` types.
 
