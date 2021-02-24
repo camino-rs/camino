@@ -4,6 +4,7 @@
 use anyhow::Result;
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 /// This example demonstrates how to use a `Utf8Path` in a `serde` struct.
 ///
@@ -26,10 +27,10 @@ struct MyStructBorrowed<'a> {
     #[serde(borrow)]
     input: &'a Utf8Path,
     #[serde(borrow)]
-    output: &'a Utf8Path,
+    output: Cow<'a, Utf8Path>,
 }
 
-static JSON_STR: &str = "{ \"input\": \"/foo/bar\", \"output\": \"/baz/quux\" }";
+static JSON_STR: &str = "{ \"input\": \"/foo/bar\", \"output\": \"/baz\\\\/quux\" }";
 pub fn main() -> Result<()> {
     println!("*** json string: {}", JSON_STR);
 
@@ -38,7 +39,7 @@ pub fn main() -> Result<()> {
     // Deserialize to MyStruct.
     let deserialized: MyStruct = serde_json::from_str(JSON_STR)?;
     assert_eq!(deserialized.input, "/foo/bar");
-    assert_eq!(deserialized.output, "/baz/quux");
+    assert_eq!(deserialized.output, "/baz\\/quux");
 
     println!("*** Trying serialize...");
     let serialized = serde_json::to_string_pretty(&deserialized)?;
@@ -49,7 +50,7 @@ pub fn main() -> Result<()> {
     // Zero-copy deserialize to MyStructBorrowed.
     let zero_copy: MyStructBorrowed<'_> = serde_json::from_str(JSON_STR)?;
     assert_eq!(zero_copy.input, "/foo/bar");
-    assert_eq!(zero_copy.output, "/baz/quux");
+    assert_eq!(zero_copy.output.as_str(), "/baz\\/quux");
 
     println!("*** Trying zero-copy serialize...");
     let serialized = serde_json::to_string_pretty(&zero_copy)?;
