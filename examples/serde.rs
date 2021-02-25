@@ -26,6 +26,10 @@ struct MyStruct {
 struct MyStructBorrowed<'a> {
     #[serde(borrow)]
     input: &'a Utf8Path,
+    // Note: This always deserializes to an owned string because of
+    // https://github.com/serde-rs/serde/issues/1852. In the future we may add a `camino-utils`
+    // library with a `CowUtf8Path<'a>` wrapper which can deserialize to the borrowed implementation
+    // if possible.
     #[serde(borrow)]
     output: Cow<'a, Utf8Path>,
 }
