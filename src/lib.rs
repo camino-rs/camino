@@ -1975,13 +1975,13 @@ macro_rules! impl_cmp_str {
             }
         }
 
-        // impl<'a, 'b> PartialEq<$lhs> for $rhs {
-        //     #[inline]
-        //     fn eq(&self, other: &$lhs) -> bool {
-        //         <Utf8Path as PartialEq>::eq(self.as_ref(), other)
-        //     }
-        // }
-        //
+        impl<'a, 'b> PartialEq<$lhs> for $rhs {
+            #[inline]
+            fn eq(&self, other: &$lhs) -> bool {
+                <Utf8Path as PartialEq>::eq(Utf8Path::new(self), other)
+            }
+        }
+
         impl<'a, 'b> PartialOrd<$rhs> for $lhs {
             #[inline]
             fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
@@ -1989,12 +1989,12 @@ macro_rules! impl_cmp_str {
             }
         }
 
-        // impl<'a, 'b> PartialOrd<$lhs> for $rhs {
-        //     #[inline]
-        //     fn partial_cmp(&self, other: &$lhs) -> Option<cmp::Ordering> {
-        //         <Utf8Path as PartialOrd>::partial_cmp(self.as_ref(), other)
-        //     }
-        // }
+        impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$lhs) -> Option<std::cmp::Ordering> {
+                <Utf8Path as PartialOrd>::partial_cmp(Utf8Path::new(self), other)
+            }
+        }
     };
 }
 
