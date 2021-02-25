@@ -46,8 +46,8 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        # 1.39 is the MSRV, and the other versions add new features through build.rs.
-        rust-version: [ 1.39, 1.44, stable ]
+        # 1.34 is the MSRV, and the other versions add new features through build.rs.
+        rust-version: [ 1.34, 1.44, stable ]
       fail-fast: false
     env:
       RUSTFLAGS: -D warnings
