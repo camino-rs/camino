@@ -50,6 +50,8 @@ use std::{
 
 #[cfg(feature = "serde1")]
 mod serde_impls;
+#[cfg(test)]
+mod tests;
 
 /// An owned, mutable UTF-8 path (akin to [`String`]).
 ///
@@ -511,6 +513,20 @@ impl Utf8Path {
     /// ```
     pub fn from_path(path: &Path) -> Option<&Utf8Path> {
         path.as_os_str().to_str().map(|s| Utf8Path::new(s))
+    }
+
+    /// Yields the underlying [`Path`] slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// let std_path = Utf8Path::new("foo.txt").as_std_path();
+    /// assert_eq!(std_path, std::path::Path::new("foo.txt"));
+    /// ```
+    pub fn as_std_path(&self) -> &Path {
+        &self.0
     }
 
     /// Yields the underlying [`str`] slice.
@@ -1696,17 +1712,91 @@ impl FromStr for Utf8PathBuf {
     }
 }
 
-impl<T: ?Sized + AsRef<str>> From<&T> for Utf8PathBuf {
-    fn from(s: &T) -> Utf8PathBuf {
-        Utf8PathBuf::from(s.as_ref().to_owned())
-    }
-}
+// ---
+// From impls: borrowed -> borrowed
+// ---
 
 impl<'a> From<&'a str> for &'a Utf8Path {
     fn from(s: &'a str) -> &'a Utf8Path {
         Utf8Path::new(s)
     }
 }
+
+// ---
+// From impls: borrowed -> owned
+// ---
+
+impl<T: ?Sized + AsRef<str>> From<&T> for Utf8PathBuf {
+    fn from(s: &T) -> Utf8PathBuf {
+        Utf8PathBuf::from(s.as_ref().to_owned())
+    }
+}
+
+impl<T: ?Sized + AsRef<str>> From<&T> for Box<Utf8Path> {
+    fn from(s: &T) -> Box<Utf8Path> {
+        Utf8PathBuf::from(s).into_boxed_path()
+    }
+}
+
+impl From<&'_ Utf8Path> for Arc<Utf8Path> {
+    fn from(path: &Utf8Path) -> Arc<Utf8Path> {
+        let arc: Arc<Path> = Arc::from(path.as_std_path());
+        let ptr = Arc::into_raw(arc) as *const Utf8Path;
+        // SAFETY:
+        // * path is valid UTF-8
+        // * ptr was created by consuming an Arc<Path> so it represents an arced pointer
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+        //   *const Utf8Path is valid
+        unsafe { Arc::from_raw(ptr) }
+    }
+}
+
+impl From<&'_ Utf8Path> for Rc<Utf8Path> {
+    fn from(path: &Utf8Path) -> Rc<Utf8Path> {
+        let rc: Rc<Path> = Rc::from(path.as_std_path());
+        let ptr = Rc::into_raw(rc) as *const Utf8Path;
+        // SAFETY:
+        // * path is valid UTF-8
+        // * ptr was created by consuming an Rc<Path> so it represents an rced pointer
+        // * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+        //   *const Utf8Path is valid
+        unsafe { Rc::from_raw(ptr) }
+    }
+}
+
+impl<'a> From<&'a Utf8Path> for Cow<'a, Utf8Path> {
+    fn from(path: &'a Utf8Path) -> Cow<'a, Utf8Path> {
+        Cow::Borrowed(path)
+    }
+}
+
+impl From<&'_ Utf8Path> for Box<Path> {
+    fn from(path: &Utf8Path) -> Box<Path> {
+        path.as_std_path().into()
+    }
+}
+
+impl From<&'_ Utf8Path> for Arc<Path> {
+    fn from(path: &Utf8Path) -> Arc<Path> {
+        path.as_std_path().into()
+    }
+}
+
+impl From<&'_ Utf8Path> for Rc<Path> {
+    fn from(path: &Utf8Path) -> Rc<Path> {
+        path.as_std_path().into()
+    }
+}
+
+impl<'a> From<&'a Utf8Path> for Cow<'a, Path> {
+    fn from(path: &'a Utf8Path) -> Cow<'a, Path> {
+        Cow::Borrowed(path.as_std_path())
+    }
+}
+
+// ---
+// From impls: owned -> owned
+// ---
 
 impl From<Box<Utf8Path>> for Utf8PathBuf {
     fn from(path: Box<Utf8Path>) -> Utf8PathBuf {
@@ -1729,12 +1819,6 @@ impl<'a> From<Cow<'a, Utf8Path>> for Utf8PathBuf {
 impl From<Utf8PathBuf> for String {
     fn from(path: Utf8PathBuf) -> String {
         path.into_string()
-    }
-}
-
-impl From<Utf8PathBuf> for PathBuf {
-    fn from(path: Utf8PathBuf) -> PathBuf {
-        path.0
     }
 }
 
@@ -1775,6 +1859,40 @@ impl From<Utf8PathBuf> for Rc<Utf8Path> {
         unsafe { Rc::from_raw(ptr) }
     }
 }
+
+impl From<Utf8PathBuf> for PathBuf {
+    fn from(path: Utf8PathBuf) -> PathBuf {
+        path.0
+    }
+}
+
+impl From<Utf8PathBuf> for Box<Path> {
+    fn from(path: Utf8PathBuf) -> Box<Path> {
+        PathBuf::from(path).into_boxed_path()
+    }
+}
+
+impl From<Utf8PathBuf> for Arc<Path> {
+    fn from(path: Utf8PathBuf) -> Arc<Path> {
+        PathBuf::from(path).into()
+    }
+}
+
+impl From<Utf8PathBuf> for Rc<Path> {
+    fn from(path: Utf8PathBuf) -> Rc<Path> {
+        PathBuf::from(path).into()
+    }
+}
+
+impl<'a> From<Utf8PathBuf> for Cow<'a, Path> {
+    fn from(path: Utf8PathBuf) -> Cow<'a, Path> {
+        PathBuf::from(path).into()
+    }
+}
+
+// ---
+// AsRef impls
+// ---
 
 impl AsRef<Utf8Path> for Utf8Path {
     fn as_ref(&self) -> &Utf8Path {
@@ -1836,6 +1954,10 @@ impl AsRef<OsStr> for Utf8PathBuf {
     }
 }
 
+// ---
+// Borrow and ToOwned
+// ---
+
 impl Borrow<Utf8Path> for Utf8PathBuf {
     fn borrow(&self) -> &Utf8Path {
         self.as_path()
@@ -1857,6 +1979,10 @@ impl<P: AsRef<Utf8Path>> std::iter::FromIterator<P> for Utf8PathBuf {
         buf
     }
 }
+
+// ---
+// [Partial]Eq, [Partial]Ord, Hash
+// ---
 
 impl PartialEq for Utf8PathBuf {
     fn eq(&self, other: &Utf8PathBuf) -> bool {
@@ -1966,6 +2092,51 @@ impl_cmp!(Cow<'a, Utf8Path>, Utf8Path);
 impl_cmp!(Cow<'a, Utf8Path>, &'b Utf8Path);
 impl_cmp!(Cow<'a, Utf8Path>, Utf8PathBuf);
 
+macro_rules! impl_cmp_std_path {
+    ($lhs:ty, $rhs: ty) => {
+        impl<'a, 'b> PartialEq<$rhs> for $lhs {
+            #[inline]
+            fn eq(&self, other: &$rhs) -> bool {
+                <Path as PartialEq>::eq(self.as_ref(), other)
+            }
+        }
+
+        impl<'a, 'b> PartialEq<$lhs> for $rhs {
+            #[inline]
+            fn eq(&self, other: &$lhs) -> bool {
+                <Path as PartialEq>::eq(self, other.as_ref())
+            }
+        }
+
+        impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
+                <Path as PartialOrd>::partial_cmp(self.as_ref(), other)
+            }
+        }
+
+        impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$lhs) -> Option<std::cmp::Ordering> {
+                <Path as PartialOrd>::partial_cmp(self, other.as_ref())
+            }
+        }
+    };
+}
+
+impl_cmp_std_path!(Utf8PathBuf, Path);
+impl_cmp_std_path!(Utf8PathBuf, &'a Path);
+impl_cmp_std_path!(Utf8PathBuf, Cow<'a, Path>);
+impl_cmp_std_path!(Utf8PathBuf, PathBuf);
+impl_cmp_std_path!(Utf8Path, Path);
+impl_cmp_std_path!(Utf8Path, &'a Path);
+impl_cmp_std_path!(Utf8Path, Cow<'a, Path>);
+impl_cmp_std_path!(Utf8Path, PathBuf);
+impl_cmp_std_path!(&'a Utf8Path, Path);
+impl_cmp_std_path!(&'a Utf8Path, Cow<'b, Path>);
+impl_cmp_std_path!(&'a Utf8Path, PathBuf);
+// NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)
+
 macro_rules! impl_cmp_str {
     ($lhs:ty, $rhs: ty) => {
         impl<'a, 'b> PartialEq<$rhs> for $lhs {
@@ -2009,6 +2180,52 @@ impl_cmp_str!(Utf8Path, String);
 impl_cmp_str!(&'a Utf8Path, str);
 impl_cmp_str!(&'a Utf8Path, Cow<'b, str>);
 impl_cmp_str!(&'a Utf8Path, String);
+// NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)
+
+macro_rules! impl_cmp_os_str {
+    ($lhs:ty, $rhs: ty) => {
+        impl<'a, 'b> PartialEq<$rhs> for $lhs {
+            #[inline]
+            fn eq(&self, other: &$rhs) -> bool {
+                <Path as PartialEq>::eq(self.as_ref(), other.as_ref())
+            }
+        }
+
+        impl<'a, 'b> PartialEq<$lhs> for $rhs {
+            #[inline]
+            fn eq(&self, other: &$lhs) -> bool {
+                <Path as PartialEq>::eq(self.as_ref(), other.as_ref())
+            }
+        }
+
+        impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
+                <Path as PartialOrd>::partial_cmp(self.as_ref(), other.as_ref())
+            }
+        }
+
+        impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+            #[inline]
+            fn partial_cmp(&self, other: &$lhs) -> Option<std::cmp::Ordering> {
+                <Path as PartialOrd>::partial_cmp(self.as_ref(), other.as_ref())
+            }
+        }
+    };
+}
+
+impl_cmp_os_str!(Utf8PathBuf, OsStr);
+impl_cmp_os_str!(Utf8PathBuf, &'a OsStr);
+impl_cmp_os_str!(Utf8PathBuf, Cow<'a, OsStr>);
+impl_cmp_os_str!(Utf8PathBuf, OsString);
+impl_cmp_os_str!(Utf8Path, OsStr);
+impl_cmp_os_str!(Utf8Path, &'a OsStr);
+impl_cmp_os_str!(Utf8Path, Cow<'a, OsStr>);
+impl_cmp_os_str!(Utf8Path, OsString);
+impl_cmp_os_str!(&'a Utf8Path, OsStr);
+impl_cmp_os_str!(&'a Utf8Path, Cow<'b, OsStr>);
+impl_cmp_os_str!(&'a Utf8Path, OsString);
+// NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)
 
 // invariant: OsStr must be guaranteed to be utf8 data
 unsafe fn assume_utf8(string: &OsStr) -> &str {
