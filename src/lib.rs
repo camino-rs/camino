@@ -515,20 +515,6 @@ impl Utf8Path {
         path.as_os_str().to_str().map(|s| Utf8Path::new(s))
     }
 
-    /// Yields the underlying [`Path`] slice.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use camino::Utf8Path;
-    ///
-    /// let std_path = Utf8Path::new("foo.txt").as_std_path();
-    /// assert_eq!(std_path, std::path::Path::new("foo.txt"));
-    /// ```
-    pub fn as_std_path(&self) -> &Path {
-        &self.0
-    }
-
     /// Yields the underlying [`str`] slice.
     ///
     /// Unlike [`Path::to_str`], this always returns a slice because the contents of a `Utf8Path`
@@ -1740,7 +1726,7 @@ impl<T: ?Sized + AsRef<str>> From<&T> for Box<Utf8Path> {
 
 impl From<&'_ Utf8Path> for Arc<Utf8Path> {
     fn from(path: &Utf8Path) -> Arc<Utf8Path> {
-        let arc: Arc<Path> = Arc::from(path.as_std_path());
+        let arc: Arc<Path> = Arc::from(path.as_ref());
         let ptr = Arc::into_raw(arc) as *const Utf8Path;
         // SAFETY:
         // * path is valid UTF-8
@@ -1753,7 +1739,7 @@ impl From<&'_ Utf8Path> for Arc<Utf8Path> {
 
 impl From<&'_ Utf8Path> for Rc<Utf8Path> {
     fn from(path: &Utf8Path) -> Rc<Utf8Path> {
-        let rc: Rc<Path> = Rc::from(path.as_std_path());
+        let rc: Rc<Path> = Rc::from(path.as_ref());
         let ptr = Rc::into_raw(rc) as *const Utf8Path;
         // SAFETY:
         // * path is valid UTF-8
