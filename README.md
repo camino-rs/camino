@@ -52,7 +52,7 @@ for [`Path`] and [`PathBuf`].
 Most APIs are the same, but those at the boundary with `str` are different. Some examples:
 * `Path::to_str() -> Option<&str>` has been renamed to `Utf8Path::as_str() -> &str`.
 * [`Utf8Path`] implements `Display`, and `Path::display()` has been removed.
-* Iterating over a [`Path`] returns `&str`, not `&OsStr`.
+* Iterating over a [`Utf8Path`] returns `&str`, not `&OsStr`.
 
 Every [`Utf8Path`] is a valid [`Path`], so [`Utf8Path`] implements `AsRef<Path>`. Any APIs that accept `impl AsRef<Path>`
 will continue to work with [`Utf8Path`] instances.
