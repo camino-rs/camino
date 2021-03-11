@@ -35,7 +35,8 @@
 use std::{
     borrow::{Borrow, Cow},
     cmp::Ordering,
-    convert::Infallible,
+    convert::{Infallible, TryFrom},
+    error,
     ffi::{OsStr, OsString},
     fmt, fs,
     hash::{Hash, Hasher},
@@ -122,6 +123,9 @@ impl Utf8PathBuf {
     /// Creates a new `Utf8PathBuf` from a `PathBuf` containing valid UTF-8 characters.
     ///
     /// Errors with the original `PathBuf` if it is not valid UTF-8.
+    ///
+    /// For a version that returns a type that implements [`std::error::Error`], use the
+    /// `TryFrom<PathBuf>` impl.
     ///
     /// # Examples
     ///
@@ -1310,6 +1314,30 @@ impl<'a> fmt::Debug for Utf8Components<'a> {
     }
 }
 
+impl AsRef<Utf8Path> for Utf8Components<'_> {
+    fn as_ref(&self) -> &Utf8Path {
+        self.as_path()
+    }
+}
+
+impl AsRef<Path> for Utf8Components<'_> {
+    fn as_ref(&self) -> &Path {
+        self.as_path().as_ref()
+    }
+}
+
+impl AsRef<str> for Utf8Components<'_> {
+    fn as_ref(&self) -> &str {
+        self.as_path().as_ref()
+    }
+}
+
+impl AsRef<OsStr> for Utf8Components<'_> {
+    fn as_ref(&self) -> &OsStr {
+        self.as_path().as_os_str()
+    }
+}
+
 /// An iterator over the [`Utf8Component`]s of a [`Utf8Path`], as [`str`] slices.
 ///
 /// This `struct` is created by the [`iter`] method on [`Utf8Path`].
@@ -1364,6 +1392,12 @@ impl AsRef<Utf8Path> for Iter<'_> {
 
 impl AsRef<Path> for Iter<'_> {
     fn as_ref(&self) -> &Path {
+        self.as_path().as_ref()
+    }
+}
+
+impl AsRef<str> for Iter<'_> {
+    fn as_ref(&self) -> &str {
         self.as_path().as_ref()
     }
 }
@@ -1499,6 +1533,30 @@ impl<'a> fmt::Debug for Utf8Component<'a> {
 impl<'a> fmt::Display for Utf8Component<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self.as_str(), f)
+    }
+}
+
+impl AsRef<Utf8Path> for Utf8Component<'_> {
+    fn as_ref(&self) -> &Utf8Path {
+        self.as_str().as_ref()
+    }
+}
+
+impl AsRef<Path> for Utf8Component<'_> {
+    fn as_ref(&self) -> &Path {
+        self.as_os_str().as_ref()
+    }
+}
+
+impl AsRef<str> for Utf8Component<'_> {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl AsRef<OsStr> for Utf8Component<'_> {
+    fn as_ref(&self) -> &OsStr {
+        self.as_os_str()
     }
 }
 
@@ -1873,6 +1931,139 @@ impl From<Utf8PathBuf> for Rc<Path> {
 impl<'a> From<Utf8PathBuf> for Cow<'a, Path> {
     fn from(path: Utf8PathBuf) -> Cow<'a, Path> {
         PathBuf::from(path).into()
+    }
+}
+
+// ---
+// TryFrom impls
+// ---
+
+impl TryFrom<PathBuf> for Utf8PathBuf {
+    type Error = FromPathBufError;
+
+    fn try_from(path: PathBuf) -> Result<Utf8PathBuf, Self::Error> {
+        Utf8PathBuf::from_path_buf(path).map_err(|path| FromPathBufError {
+            path,
+            error: FromPathError(()),
+        })
+    }
+}
+
+impl<'a> TryFrom<&'a Path> for &'a Utf8Path {
+    type Error = FromPathError;
+
+    fn try_from(path: &'a Path) -> Result<&'a Utf8Path, Self::Error> {
+        Utf8Path::from_path(path).ok_or(FromPathError(()))
+    }
+}
+
+/// A possible error value while converting a [`PathBuf`] to a [`Utf8PathBuf`].
+///
+/// Produced by the `TryFrom<PathBuf>` implementation for [`Utf8PathBuf`].
+///
+/// # Examples
+///
+/// ```
+/// use camino::{Utf8PathBuf, FromPathBufError};
+/// use std::convert::{TryFrom, TryInto};
+/// use std::ffi::OsStr;
+/// # #[cfg(unix)]
+/// use std::os::unix::ffi::OsStrExt;
+/// use std::path::PathBuf;
+///
+/// let unicode_path = PathBuf::from("/valid/unicode");
+/// let utf8_path_buf: Utf8PathBuf = unicode_path.try_into().expect("valid Unicode path succeeded");
+///
+/// // Paths on Unix can be non-UTF-8.
+/// # #[cfg(unix)]
+/// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+/// # #[cfg(unix)]
+/// let non_unicode_path = PathBuf::from(non_unicode_str);
+/// # #[cfg(unix)]
+/// let err: FromPathBufError = Utf8PathBuf::try_from(non_unicode_path.clone())
+///     .expect_err("non-Unicode path failed");
+/// # #[cfg(unix)]
+/// assert_eq!(err.as_path(), &non_unicode_path);
+/// # #[cfg(unix)]
+/// assert_eq!(err.into_path_buf(), non_unicode_path);
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FromPathBufError {
+    path: PathBuf,
+    error: FromPathError,
+}
+
+impl FromPathBufError {
+    /// Returns the [`Path`] slice that was attempted to be converted to [`Utf8PathBuf`].
+    pub fn as_path(&self) -> &Path {
+        &self.path
+    }
+
+    /// Returns the [`PathBuf`] that was attempted to be converted to [`Utf8PathBuf`].
+    pub fn into_path_buf(self) -> PathBuf {
+        self.path
+    }
+
+    /// Fetch a [`FromPathError`] for more about the conversion failure.
+    ///
+    /// At the moment this struct does not contain any additional information, but is provided for
+    /// completeness.
+    pub fn from_path_error(&self) -> FromPathError {
+        self.error
+    }
+}
+
+impl fmt::Display for FromPathBufError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "PathBuf contains invalid UTF-8: {}", self.path.display())
+    }
+}
+
+impl error::Error for FromPathBufError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        Some(&self.error)
+    }
+}
+
+/// A possible error value while converting a [`Path`] to a [`Utf8Path`].
+///
+/// Produced by the `TryFrom<&Path>` implementation for [`&Utf8Path`](Utf8Path).
+///
+///
+/// # Examples
+///
+/// ```
+/// use camino::{Utf8Path, FromPathError};
+/// use std::convert::{TryFrom, TryInto};
+/// use std::ffi::OsStr;
+/// # #[cfg(unix)]
+/// use std::os::unix::ffi::OsStrExt;
+/// use std::path::Path;
+///
+/// let unicode_path = Path::new("/valid/unicode");
+/// let utf8_path: &Utf8Path = unicode_path.try_into().expect("valid Unicode path succeeded");
+///
+/// // Paths on Unix can be non-UTF-8.
+/// # #[cfg(unix)]
+/// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+/// # #[cfg(unix)]
+/// let non_unicode_path = Path::new(non_unicode_str);
+/// # #[cfg(unix)]
+/// let err: FromPathError = <&Utf8Path>::try_from(non_unicode_path)
+///     .expect_err("non-Unicode path failed");
+/// ```
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct FromPathError(());
+
+impl fmt::Display for FromPathError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Path contains invalid UTF-8")
+    }
+}
+
+impl error::Error for FromPathError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
     }
 }
 
