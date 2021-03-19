@@ -2171,7 +2171,7 @@ impl Eq for Utf8PathBuf {}
 
 impl Hash for Utf8PathBuf {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.hash(state)
+        self.as_path().hash(state)
     }
 }
 
