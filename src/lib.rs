@@ -154,6 +154,29 @@ impl Utf8PathBuf {
         }
     }
 
+    /// Converts a `Utf8PathBuf` to a [`PathBuf`].
+    ///
+    /// This is equivalent to the `From<Utf8PathBuf> for PathBuf` impl, but may aid in type
+    /// inference.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    /// use std::path::PathBuf;
+    ///
+    /// let utf8_path_buf = Utf8PathBuf::from("foo.txt");
+    /// let std_path_buf = utf8_path_buf.into_std_path_buf();
+    /// assert_eq!(std_path_buf.to_str(), Some("foo.txt"));
+    ///
+    /// // Convert back to a Utf8PathBuf.
+    /// let new_utf8_path_buf = Utf8PathBuf::from_path_buf(std_path_buf).unwrap();
+    /// assert_eq!(new_utf8_path_buf, "foo.txt");
+    /// ```
+    pub fn into_std_path_buf(self) -> PathBuf {
+        self.into()
+    }
+
     /// Creates a new `Utf8PathBuf` with a given capacity used to create the internal [`PathBuf`].
     /// See [`with_capacity`] defined on [`PathBuf`].
     ///
@@ -520,6 +543,28 @@ impl Utf8Path {
     /// ```
     pub fn from_path(path: &Path) -> Option<&Utf8Path> {
         path.as_os_str().to_str().map(|s| Utf8Path::new(s))
+    }
+
+    /// Converts a `Utf8Path` to a [`Path`].
+    ///
+    /// This is equivalent to the `AsRef<&Path> for &Utf8Path` impl, but may aid in type inference.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    /// use std::path::Path;
+    ///
+    /// let utf8_path = Utf8Path::new("foo.txt");
+    /// let std_path: &Path = utf8_path.as_std_path();
+    /// assert_eq!(std_path.to_str(), Some("foo.txt"));
+    ///
+    /// // Convert back to a Utf8Path.
+    /// let new_utf8_path = Utf8Path::from_path(std_path).unwrap();
+    /// assert_eq!(new_utf8_path, "foo.txt");
+    /// ```
+    pub fn as_std_path(&self) -> &Path {
+        self.as_ref()
     }
 
     /// Yields the underlying [`str`] slice.
