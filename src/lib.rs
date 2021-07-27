@@ -495,6 +495,9 @@ impl Utf8Path {
     ///
     /// Returns `None` if the path is not valid UTF-8.
     ///
+    /// For a version that returns a type that implements [`std::error::Error`], use the
+    /// `TryFrom<&Path>` impl.
+    ///
     /// # Examples
     ///
     /// ```
