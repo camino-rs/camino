@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.0.5]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.5
 [1.0.4]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.4
 [1.0.3]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.3
 [1.0.2]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.2
