@@ -3,6 +3,15 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2021-07-27
+
+### Added
+
+- `Utf8PathBuf::into_std_path_buf` converts a `Utf8PathBuf` to a `PathBuf`; equivalent to the
+  `From<Utf8PathBuf> for PathBuf` impl, but may aid in type inference.
+- `Utf8Path::as_std_path` converts a `Utf8Path` to a `Path`; equivalent to the
+  `AsRef<&Path> for &Utf8Path` impl, but may aid in type inference.
+
 ## [1.0.4] - 2021-03-19
 
 ### Fixed
