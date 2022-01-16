@@ -542,7 +542,7 @@ impl Utf8Path {
     /// assert!(Utf8Path::from_path(non_unicode_path).is_none(), "non-Unicode path failed");
     /// ```
     pub fn from_path(path: &Path) -> Option<&Utf8Path> {
-        path.as_os_str().to_str().map(|s| Utf8Path::new(s))
+        path.as_os_str().to_str().map(Utf8Path::new)
     }
 
     /// Converts a `Utf8Path` to a [`Path`].
