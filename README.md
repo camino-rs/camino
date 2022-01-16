@@ -2,7 +2,8 @@
 
 [![camino on crates.io](https://img.shields.io/crates/v/camino)](https://crates.io/crates/camino)
 [![crates.io download count](https://img.shields.io/crates/d/camino)](https://crates.io/crates/camino)
-[![Documentation (latest release)](https://docs.rs/camino/badge.svg)](https://docs.rs/camino)
+[![Documentation (latest release)](https://img.shields.io/badge/docs-latest%20version-brightgreen.svg)](https://docs.rs/camino)
+[![Documentation (main)](https://img.shields.io/badge/docs-main-purple.svg)](https://camino-rs.github.io/camino/rustdoc/camino/)
 [![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE-APACHE)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE-MIT)
 
