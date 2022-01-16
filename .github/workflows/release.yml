@@ -1,0 +1,31 @@
+# adapted from https://github.com/taiki-e/cargo-hack/blob/main/.github/workflows/release.yml
+
+name: Release binaries
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  create-release:
+    if: github.repository_owner == 'camino-rs'
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          changelog: CHANGELOG.md
+          title: camino $version
+          branch: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

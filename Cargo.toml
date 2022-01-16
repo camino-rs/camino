@@ -4,7 +4,7 @@ members = [".", "camino-examples"]
 [package]
 name = "camino"
 description = "UTF-8 paths"
-version = "1.0.5"
+version = "1.0.6"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["paths", "utf8", "unicode", "filesystem"]
