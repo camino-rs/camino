@@ -1203,6 +1203,39 @@ impl Utf8Path {
         self.0.is_dir()
     }
 
+    /// Returns `true` if the path exists on disk and is pointing at a symbolic link.
+    ///
+    /// This function will not traverse symbolic links.
+    /// In case of a broken symbolic link this will also return true.
+    ///
+    /// If you cannot access the directory containing the file, e.g., because of a
+    /// permission error, this will return false.
+    ///
+    /// # Examples
+    ///
+    #[cfg_attr(unix, doc = "```no_run")]
+    #[cfg_attr(not(unix), doc = "```ignore")]
+    /// use camino::Utf8Path;
+    /// use std::os::unix::fs::symlink;
+    ///
+    /// let link_path = Utf8Path::new("link");
+    /// symlink("/origin_does_not_exist/", link_path).unwrap();
+    /// assert_eq!(link_path.is_symlink(), true);
+    /// assert_eq!(link_path.exists(), false);
+    /// ```
+    ///
+    /// # See Also
+    ///
+    /// This is a convenience function that coerces errors to false. If you want to
+    /// check errors, call [`Utf8Path::symlink_metadata`] and handle its [`Result`]. Then call
+    /// [`fs::Metadata::is_symlink`] if it was [`Ok`].
+    #[must_use]
+    pub fn is_symlink(&self) -> bool {
+        self.symlink_metadata()
+            .map(|m| m.file_type().is_symlink())
+            .unwrap_or(false)
+    }
+
     /// Converts a `Box<Utf8Path>` into a [`Utf8PathBuf`] without copying or allocating.
     pub fn into_path_buf(self: Box<Utf8Path>) -> Utf8PathBuf {
         let ptr = Box::into_raw(self) as *mut Path;

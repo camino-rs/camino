@@ -5,6 +5,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- `Utf8Path::is_symlink` checks whether a path is a symlink. Note that while `std::path::Path` only
+  provides this method for version 1.58 and above, `camino` polyfills the method for all Rust versions
+  it supports.
+
 ### Changed
 
 - Update repository links to new location [camino-rs/camino](https://github.com/camino-rs/camino).
