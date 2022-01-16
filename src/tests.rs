@@ -42,5 +42,5 @@ fn test_into<T, U>(orig: T)
 where
     T: Into<U>,
 {
-    orig.into();
+    let _ = orig.into();
 }
