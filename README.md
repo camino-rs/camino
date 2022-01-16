@@ -99,7 +99,7 @@ against the latest stable version of Rust and the MSRV.
 * *Stable APIs* added in later Rust versions are supported through conditional compilation in `build.rs`.
 * *Deprecations* are kept in sync with the version of Rust they're added in.
 * *Unstable APIs* are currently not supported. Please
-  [file an issue on GitHub](https://github.com/withoutboats/camino/issues/new) if you need an unstable API.
+  [file an issue on GitHub](https://github.com/camino-rs/camino/issues/new) if you need an unstable API.
 
 `camino` is designed to be a core library and has a conservative MSRV policy. MSRV increases will only happen for
 a compelling enough reason, and will involve at least a minor version bump.
@@ -122,4 +122,4 @@ or the [MIT license](https://github.com/rust-lang/rust/blob/master/LICENSE-MIT).
 [`std::path::Path`]: https://doc.rust-lang.org/std/path/struct.Path.html
 [`Serialize`]: https://docs.rs/serde/1/serde/trait.Serialize.html
 [`Deserialize`]: https://docs.rs/serde/1/serde/trait.Deserialize.html
-[`examples`]: https://github.com/withoutboats/camino/tree/master/examples
+[`examples`]: https://github.com/camino-rs/camino/tree/master/examples

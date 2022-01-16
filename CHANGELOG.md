@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Update repository links to new location [camino-rs/camino](https://github.com/camino-rs/camino).
+
 ## [1.0.5] - 2021-07-27
 
 ### Added
@@ -18,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Hash` impls for `Utf8PathBuf` and `Utf8Path` now match as required by the `Borrow` contract ([#9]).
 
-[#9]: https://github.com/withoutboats/camino/issues/9
+[#9]: https://github.com/camino-rs/camino/issues/9
 
 ## [1.0.3] - 2021-03-11
 
@@ -28,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AsRef<Utf8Path>`, `AsRef<Path>`, `AsRef<str>` and `AsRef<OsStr>` impls for `Utf8Components`, `Utf8Component` and
   `Iter`.
 
-[#6]: https://github.com/withoutboats/camino/issues/6
+[#6]: https://github.com/camino-rs/camino/issues/6
 
 ## [1.0.2] - 2021-03-02
 
@@ -49,9 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
-[1.0.5]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.5
-[1.0.4]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.4
-[1.0.3]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.3
-[1.0.2]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.2
-[1.0.1]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.1
-[1.0.0]: https://github.com/withoutboats/camino/releases/tag/camino-1.0.0
+[1.0.5]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.5
+[1.0.4]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.4
+[1.0.3]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.3
+[1.0.2]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.2
+[1.0.1]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.1
+[1.0.0]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.0
