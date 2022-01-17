@@ -1,6 +1,6 @@
 # adapted from https://github.com/taiki-e/cargo-hack/blob/main/.github/workflows/release.yml
 
-name: Release binaries
+name: Publish release
 on:
   push:
     tags:

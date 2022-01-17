@@ -5,12 +5,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.7] - 2022-01-16
 
-### Fixed
-
-- Fixed conflict markers in readme.
-
-## [1.0.6] - 2022-01-16
-
 ### Added
 
 - `Utf8Path::is_symlink` checks whether a path is a symlink. Note that while `std::path::Path` only
@@ -22,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update repository links to new location [camino-rs/camino](https://github.com/camino-rs/camino).
 - Update `structopt` example to clap 3's builtin derive feature.
   (camino continues to work with structopt as before.)
+
+## [1.0.6] - 2022-01-16
+
+(This release was yanked due to a publishing issue.)
 
 ## [1.0.5] - 2021-07-27
 
