@@ -4,7 +4,7 @@ This crate contains examples showing how to use camino.
 
 ## Examples
 
-* [`src/bin/structopt.rs`](src/bin/clap-derive.rs): Shows how to use clap's derive feature with camino.
+* [`src/bin/clap-derive.rs`](src/bin/clap-derive.rs): Shows how to use clap's derive feature with camino.
 
     Run with `cargo run --package camino-examples --bin clap-derive`.
 
