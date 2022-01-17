@@ -1,0 +1,16 @@
+[package]
+name = "camino-examples"
+description = "Examples for camino"
+version = "0.1.0"
+edition = "2018"
+publish = false
+
+[dependencies]
+anyhow = "1.0.38"
+camino = { path = "..", features = ["serde1"] }
+structopt = "0.3.21"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1.0.62" }
+
+[[bin]]
+name = "serde"

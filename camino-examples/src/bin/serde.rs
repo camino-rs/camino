@@ -12,7 +12,7 @@ use std::borrow::Cow;
 /// deserialization. (Note that serde itself [does not support] parsing non-UTF-8 `PathBuf`s, so
 /// there is no loss of generality in switching to `Utf8PathBuf` instances.)
 ///
-/// To run this example, run `cargo run --features serde1 --example serde`.
+/// To run this example, run `cargo run --package camino-examples --bin serde`.
 ///
 /// [does not support]: https://docs.rs/crate/serde/1.0.123/source/src/de/impls.rs
 #[derive(Serialize, Deserialize)]

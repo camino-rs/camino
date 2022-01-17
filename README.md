@@ -43,7 +43,7 @@ as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
 The documentation for [`Utf8PathBuf`] and [`Utf8Path`] contains several examples.
 
-For examples of how to use `camino` with other libraries like `serde` and `structopt`, see the [`examples`] directory. 
+For examples of how to use `camino` with other libraries like `serde` and `structopt`, see the [`camino-examples`] directory.
 
 ## API design
 
@@ -122,4 +122,4 @@ or the [MIT license](https://github.com/rust-lang/rust/blob/master/LICENSE-MIT).
 [`std::path::Path`]: https://doc.rust-lang.org/std/path/struct.Path.html
 [`Serialize`]: https://docs.rs/serde/1/serde/trait.Serialize.html
 [`Deserialize`]: https://docs.rs/serde/1/serde/trait.Deserialize.html
-[`examples`]: https://github.com/camino-rs/camino/tree/master/examples
+[`examples`]: https://github.com/camino-rs/camino/tree/main/camino-examples
