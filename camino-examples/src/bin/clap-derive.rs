@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use camino::Utf8PathBuf;
-use structopt::StructOpt;
+use clap::Parser;
 
-/// This example shows how a `Utf8Path` can be used with `structopt` argument parsing.
+/// This example shows how a `Utf8Path` can be used with `clap`'s derive-based argument parsing.
 ///
 /// Using a `Utf8Path` in argument parsing in this manner means that non-UTF-8 paths can be rejected
 /// at the boundaries of your program.
 ///
-/// To run this example, run `cargo run --package camino-examples --bin structopt`.
-#[derive(StructOpt)]
-#[structopt(rename_all = "kebab-case")]
+/// To run this example, run `cargo run --package camino-examples --bin clap-derive`.
+#[derive(Parser)]
+#[clap(rename_all = "kebab-case")]
 struct Opt {
     /// Input file
     input: Utf8PathBuf,
@@ -22,7 +22,7 @@ struct Opt {
 
 pub fn main() {
     // Parse the arguments.
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
 
     // Print the input and output files.
     println!("input file: {}", opt.input);
