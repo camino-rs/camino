@@ -21,8 +21,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          # cargo-compare currently pulls in cargo which bloats build times massively
-          args: --all-features --workspace
+          args: --all-features
       - name: Organize
         run: |
           mkdir target/gh-pages
