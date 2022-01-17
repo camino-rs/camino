@@ -9,7 +9,7 @@ use structopt::StructOpt;
 /// Using a `Utf8Path` in argument parsing in this manner means that non-UTF-8 paths can be rejected
 /// at the boundaries of your program.
 ///
-/// To run this example, run `cargo run --example structopt`.
+/// To run this example, run `cargo run --package camino-examples --bin structopt`.
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 struct Opt {

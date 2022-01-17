@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "camino-examples"]
+
 [package]
 name = "camino"
 description = "UTF-8 paths"
@@ -23,14 +26,5 @@ all-features = true
 [dependencies]
 serde = { version = "1", features = ["derive"], optional = true }
 
-[dev-dependencies]
-anyhow = "1.0.38"
-structopt = "0.3.21"
-serde_json = "1.0.62"
-
 [features]
 serde1 = ["serde"]
-
-[[example]]
-name = "serde"
-required-features = ["serde1"]

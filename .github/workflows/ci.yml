@@ -31,7 +31,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-features --all-targets
+          args: --workspace --all-features --all-targets
       - name: Lint (rustfmt)
         uses: actions-rs/cargo@v1
         with:
@@ -73,11 +73,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-targets --all-features
+          args: --workspace --all-features
       - name: Test all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --all-features
+          args: --workspace --all-features
