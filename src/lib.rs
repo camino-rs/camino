@@ -5,7 +5,7 @@
 
 //! UTF-8 encoded paths.
 //!
-//! `camino` is an extension of the `std::path` module that adds new `Utf8PathBuf` and `Utf8Path`
+//! `camino` is an extension of the `std::path` module that adds new [`Utf8PathBuf`] and [`Utf8Path`]
 //! types. These are like the standard library's [`PathBuf`] and [`Path`] types, except they are
 //! guaranteed to only contain UTF-8 encoded data. Therefore, they expose the ability to get their
 //! contents as strings, they implement `Display`, etc.
