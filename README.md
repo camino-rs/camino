@@ -74,6 +74,8 @@ is ultimately a case-by-case decision. Here are some general guidelines that may
   burdens on downstream consumers.
 * **You're building something brand new and are willing to ask your users to rename their paths if necessary.** Projects
   that don't have to worry about legacy compatibility have more flexibility in choosing what paths they support.
+  
+In general, using camino is the right choice for most projects.
 
 *You should **NOT** use camino, if...*
 
@@ -97,7 +99,7 @@ dependencies:
 
 The minimum supported Rust version (MSRV) for `camino` with default features is **1.34**. This project is tested in CI
 against the latest stable version of Rust and the MSRV.
-* *Stable APIs* added in later Rust versions are supported through conditional compilation in `build.rs`.
+* *Stable APIs* added in later Rust versions are supported either through conditional compilation in `build.rs`, or through polyfills that also work on older versions.
 * *Deprecations* are kept in sync with the version of Rust they're added in.
 * *Unstable APIs* are currently not supported. Please
   [file an issue on GitHub](https://github.com/camino-rs/camino/issues/new) if you need an unstable API.
