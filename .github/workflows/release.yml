@@ -27,5 +27,6 @@ jobs:
           changelog: CHANGELOG.md
           title: camino $version
           branch: main
+          prefix: camino
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
