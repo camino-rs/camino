@@ -43,7 +43,11 @@ as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
 The documentation for [`Utf8PathBuf`] and [`Utf8Path`] contains several examples.
 
+<<<<<<< HEAD
 For examples of how to use `camino` with other libraries like `serde` and `structopt`, see the [`camino-examples`] directory.
+=======
+For examples of how to use `camino` with other libraries like `serde` and `clap`, see the [`examples`] directory. 
+>>>>>>> 9ab4941 ([examples] update structopt example to use clap 3's derive feature)
 
 ## API design
 

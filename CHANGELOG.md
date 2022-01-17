@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update repository links to new location [camino-rs/camino](https://github.com/camino-rs/camino).
+- Update `structopt` example to clap 3's builtin derive feature.
+  (camino continues to work with structopt as before.)
 
 ## [1.0.5] - 2021-07-27
 
