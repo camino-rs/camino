@@ -24,7 +24,9 @@ exclude = [".cargo/**/*", ".github/**/*"]
 all-features = true
 
 [dependencies]
+proptest = { version = "1.0.0", optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
 
 [features]
 serde1 = ["serde"]
+proptest1 = ["proptest"]
