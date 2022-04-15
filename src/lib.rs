@@ -49,6 +49,8 @@ use std::{
     sync::Arc,
 };
 
+#[cfg(feature = "proptest1")]
+mod proptest_impls;
 #[cfg(feature = "serde1")]
 mod serde_impls;
 #[cfg(test)]
