@@ -35,10 +35,11 @@
 use std::{
     borrow::{Borrow, Cow},
     cmp::Ordering,
-    convert::{Infallible, TryFrom},
+    convert::{Infallible, TryFrom, TryInto},
     error,
     ffi::{OsStr, OsString},
-    fmt, fs,
+    fmt,
+    fs::{self, Metadata},
     hash::{Hash, Hasher},
     io,
     iter::FusedIterator,
@@ -1065,7 +1066,8 @@ impl Utf8Path {
     /// components normalized and symbolic links resolved.
     ///
     /// This returns a [`PathBuf`] because even if a symlink is valid Unicode, its target may not
-    /// be.
+    /// be. For a version that returns a [`Utf8PathBuf`], see
+    /// [`canonicalize_utf8`](Self::canonicalize_utf8).
     ///
     /// This is an alias to [`fs::canonicalize`].
     ///
@@ -1082,10 +1084,42 @@ impl Utf8Path {
         self.0.canonicalize()
     }
 
+    /// Returns the canonical, absolute form of the path with all intermediate
+    /// components normalized and symbolic links resolved.
+    ///
+    /// This method attempts to convert the resulting [`PathBuf`] into a [`Utf8PathBuf`]. For a
+    /// version that does not attempt to do this conversion, see
+    /// [`canonicalize`](Self::canonicalize).
+    ///
+    /// # Errors
+    ///
+    /// The I/O operation may return an error: see the [`fs::canonicalize`]
+    /// documentation for more.
+    ///
+    /// If the resulting path is not UTF-8, an [`io::Error`] is returned with the
+    /// [`ErrorKind`](io::ErrorKind) set to `InvalidData` and the payload set to a
+    /// [`FromPathBufError`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let path = Utf8Path::new("/foo/test/../test/bar.rs");
+    /// assert_eq!(path.canonicalize().unwrap(), Utf8PathBuf::from("/foo/test/bar.rs"));
+    /// ```
+    pub fn canonicalize_utf8(&self) -> io::Result<Utf8PathBuf> {
+        self.canonicalize().and_then(|path| {
+            path.try_into()
+                .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))
+        })
+    }
+
     /// Reads a symbolic link, returning the file that the link points to.
     ///
     /// This returns a [`PathBuf`] because even if a symlink is valid Unicode, its target may not
-    /// be.
+    /// be. For a version that returns a [`Utf8PathBuf`], see
+    /// [`read_link_utf8`](Self::read_link_utf8).
     ///
     /// This is an alias to [`fs::read_link`].
     ///
@@ -1099,6 +1133,35 @@ impl Utf8Path {
     /// ```
     pub fn read_link(&self) -> io::Result<PathBuf> {
         self.0.read_link()
+    }
+
+    /// Reads a symbolic link, returning the file that the link points to.
+    ///
+    /// This method attempts to convert the resulting [`PathBuf`] into a [`Utf8PathBuf`]. For a
+    /// version that does not attempt to do this conversion, see [`read_link`](Self::read_link).
+    ///
+    /// # Errors
+    ///
+    /// The I/O operation may return an error: see the [`fs::read_link`]
+    /// documentation for more.
+    ///
+    /// If the resulting path is not UTF-8, an [`io::Error`] is returned with the
+    /// [`ErrorKind`](io::ErrorKind) set to `InvalidData` and the payload set to a
+    /// [`FromPathBufError`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("/laputa/sky_castle.rs");
+    /// let path_link = path.read_link_utf8().expect("read_link call failed");
+    /// ```
+    pub fn read_link_utf8(&self) -> io::Result<Utf8PathBuf> {
+        self.read_link().and_then(|path| {
+            path.try_into()
+                .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))
+        })
     }
 
     /// Returns an iterator over the entries within a directory.
@@ -1122,6 +1185,37 @@ impl Utf8Path {
     /// ```
     pub fn read_dir(&self) -> io::Result<fs::ReadDir> {
         self.0.read_dir()
+    }
+
+    /// Returns an iterator over the entries within a directory.
+    ///
+    /// The iterator will yield instances of [`io::Result`]`<`[`Utf8DirEntry`]`>`. New
+    /// errors may be encountered after an iterator is initially constructed.
+    ///
+    /// # Errors
+    ///
+    /// The I/O operation may return an error: see the [`fs::read_dir`]
+    /// documentation for more.
+    ///
+    /// If a directory entry is not UTF-8, an [`io::Error`] is returned with the
+    /// [`ErrorKind`](io::ErrorKind) set to `InvalidData` and the payload set to a
+    /// [`FromPathBufError`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use camino::Utf8Path;
+    ///
+    /// let path = Utf8Path::new("/laputa");
+    /// for entry in path.read_dir().expect("read_dir call failed") {
+    ///     if let Ok(entry) = entry {
+    ///         println!("{:?}", entry.path());
+    ///     }
+    /// }
+    /// ```
+    #[inline]
+    pub fn read_dir_utf8(&self) -> io::Result<ReadDirUtf8> {
+        self.0.read_dir().map(|inner| ReadDirUtf8 { inner })
     }
 
     /// Returns `true` if the path points at an existing entity.
@@ -1822,6 +1916,191 @@ impl<'a> fmt::Display for Utf8PrefixComponent<'a> {
 }
 
 // ---
+// read_dir_utf8
+// ---
+
+/// Iterator over the entries in a directory.
+///
+/// This iterator is returned from [`Utf8Path::read_dir_utf8`] and will yield instances of
+/// <code>[io::Result]<[Utf8DirEntry]></code>. Through a [`Utf8 DirEntry`] information like the entry's path
+/// and possibly other metadata can be learned.
+///
+/// The order in which this iterator returns entries is platform and filesystem
+/// dependent.
+///
+/// # Errors
+///
+/// This [`io::Result`] will be an [`Err`] if there's some sort of intermittent
+/// IO error during iteration.
+///
+/// If a directory entry is not UTF-8, an [`io::Error`] is returned with the
+/// [`ErrorKind`](io::ErrorKind) set to `InvalidData` and the payload set to a [`FromPathBufError`].
+#[derive(Debug)]
+pub struct ReadDirUtf8 {
+    inner: fs::ReadDir,
+}
+
+impl Iterator for ReadDirUtf8 {
+    type Item = io::Result<Utf8DirEntry>;
+
+    fn next(&mut self) -> Option<io::Result<Utf8DirEntry>> {
+        self.inner
+            .next()
+            .map(|entry| entry.and_then(Utf8DirEntry::new))
+    }
+}
+
+/// Entries returned by the [`ReadDirUtf8`] iterator.
+///
+/// An instance of `Utf8DirEntry` represents an entry inside of a directory on the filesystem. Each
+/// entry can be inspected via methods to learn about the full path or possibly other metadata.
+#[derive(Debug)]
+pub struct Utf8DirEntry {
+    inner: fs::DirEntry,
+    path: Utf8PathBuf,
+}
+
+impl Utf8DirEntry {
+    fn new(inner: fs::DirEntry) -> io::Result<Self> {
+        let path = inner
+            .path()
+            .try_into()
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+        Ok(Self { inner, path })
+    }
+
+    /// Returns the full path to the file that this entry represents.
+    ///
+    /// The full path is created by joining the original path to `read_dir`
+    /// with the filename of this entry.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use camino::Utf8Path;
+    ///
+    /// fn main() -> std::io::Result<()> {
+    ///     for entry in Utf8Path::new(".").read_dir_utf8()? {
+    ///         let dir = entry?;
+    ///         println!("{}", dir.path());
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// This prints output like:
+    ///
+    /// ```text
+    /// ./whatever.txt
+    /// ./foo.html
+    /// ./hello_world.rs
+    /// ```
+    ///
+    /// The exact text, of course, depends on what files you have in `.`.
+    #[inline]
+    pub fn path(&self) -> &Utf8Path {
+        &self.path
+    }
+
+    /// Returns the metadata for the file that this entry points at.
+    ///
+    /// This function will not traverse symlinks if this entry points at a symlink. To traverse
+    /// symlinks use [`Utf8Path::metadata`] or [`fs::File::metadata`].
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// On Windows this function is cheap to call (no extra system calls
+    /// needed), but on Unix platforms this function is the equivalent of
+    /// calling `symlink_metadata` on the path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// if let Ok(entries) = Utf8Path::new(".").read_dir_utf8() {
+    ///     for entry in entries {
+    ///         if let Ok(entry) = entry {
+    ///             // Here, `entry` is a `Utf8DirEntry`.
+    ///             if let Ok(metadata) = entry.metadata() {
+    ///                 // Now let's show our entry's permissions!
+    ///                 println!("{}: {:?}", entry.path(), metadata.permissions());
+    ///             } else {
+    ///                 println!("Couldn't get metadata for {}", entry.path());
+    ///             }
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    #[inline]
+    pub fn metadata(&self) -> io::Result<Metadata> {
+        self.inner.metadata()
+    }
+
+    /// Returns the file type for the file that this entry points at.
+    ///
+    /// This function will not traverse symlinks if this entry points at a
+    /// symlink.
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// On Windows and most Unix platforms this function is free (no extra
+    /// system calls needed), but some Unix platforms may require the equivalent
+    /// call to `symlink_metadata` to learn about the target file type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// if let Ok(entries) = Utf8Path::new(".").read_dir_utf8() {
+    ///     for entry in entries {
+    ///         if let Ok(entry) = entry {
+    ///             // Here, `entry` is a `DirEntry`.
+    ///             if let Ok(file_type) = entry.file_type() {
+    ///                 // Now let's show our entry's file type!
+    ///                 println!("{}: {:?}", entry.path(), file_type);
+    ///             } else {
+    ///                 println!("Couldn't get file type for {}", entry.path());
+    ///             }
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    #[inline]
+    pub fn file_type(&self) -> io::Result<fs::FileType> {
+        self.inner.file_type()
+    }
+
+    /// Returns the bare file name of this directory entry without any other
+    /// leading path component.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// if let Ok(entries) = Utf8Path::new(".").read_dir_utf8() {
+    ///     for entry in entries {
+    ///         if let Ok(entry) = entry {
+    ///             // Here, `entry` is a `DirEntry`.
+    ///             println!("{}", entry.file_name());
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn file_name(&self) -> &str {
+        self.path
+            .file_name()
+            .expect("path created through DirEntry must have a filename")
+    }
+
+    /// Returns the original [`fs::DirEntry`] within this [`Utf8DirEntry`].
+    #[inline]
+    pub fn into_inner(self) -> fs::DirEntry {
+        self.inner
+    }
+}
 
 impl From<String> for Utf8PathBuf {
     fn from(string: String) -> Utf8PathBuf {
