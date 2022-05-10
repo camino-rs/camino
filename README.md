@@ -93,13 +93,16 @@ In general, using camino is the right choice for most projects.
 
 By default, `camino` has **no dependencies** other than `std`. There are some optional features that enable
 dependencies:
-* `serde1` adds serde [`Serialize`] and [`Deserialize`] impls for [`Utf8PathBuf`] and [`Utf8Path`] (zero-copy).
+* `serde1` adds serde [`Serialize`] and [`Deserialize`] impls for [`Utf8PathBuf`] and [`Utf8Path`]
+  (zero-copy).
+* `proptest1` adds [proptest](https://altsysrq.github.io/proptest-book/) [`Arbitrary`]
+  implementations for [`Utf8PathBuf`] and [`Box<Utf8Path>`].
 
 ## Rust version support
 
 The minimum supported Rust version (MSRV) for `camino` with default features is **1.34**. This project is tested in CI
 against the latest stable version of Rust and the MSRV.
-* *Stable APIs* added in later Rust versions are supported either through conditional compilation in `build.rs`, or through polyfills that also work on older versions.
+* *Stable APIs* added in later Rust versions are supported either through conditional compilation in `build.rs`, or through backfills that also work on older versions.
 * *Deprecations* are kept in sync with the version of Rust they're added in.
 * *Unstable APIs* are currently not supported. Please
   [file an issue on GitHub](https://github.com/camino-rs/camino/issues/new) if you need an unstable API.

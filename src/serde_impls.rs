@@ -36,6 +36,7 @@ impl<'a> de::Visitor<'a> for Utf8PathVisitor {
     }
 }
 
+#[cfg(feature = "serde1")]
 impl<'de: 'a, 'a> Deserialize<'de> for &'a Utf8Path {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -45,6 +46,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for &'a Utf8Path {
     }
 }
 
+#[cfg(feature = "serde1")]
 impl Serialize for Utf8Path {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
