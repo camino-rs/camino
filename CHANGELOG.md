@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New methods `canonicalize_utf8`, `read_link_utf8` and `read_dir_utf8` return `Utf8PathBuf`s, erroring out if a resulting path is not valid UTF-8.
 - New feature `proptest1` introduces proptest `Arbitrary` impls for `Utf8PathBuf` and
-  `Box<Utf8Path>` ([#18], thanks [mcronce](https://github.com/mcronce) for their first contribution!
+  `Box<Utf8Path>` ([#18], thanks [mcronce](https://github.com/mcronce) for your first contribution!)
+  
+[#18]: https://github.com/camino-rs/camino/pull/18
 
 ## [1.0.7] - 2022-01-16
 
