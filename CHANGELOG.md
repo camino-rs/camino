@@ -3,6 +3,14 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2022-05-09
+
+### Added
+
+- New methods `canonicalize_utf8`, `read_link_utf8` and `read_dir_utf8` return `Utf8PathBuf`s, erroring out if a resulting path is not valid UTF-8.
+- New feature `proptest1` introduces proptest `Arbitrary` impls for `Utf8PathBuf` and
+  `Box<Utf8Path>` ([#18], thanks [mcronce](https://github.com/mcronce) for their first contribution!
+
 ## [1.0.7] - 2022-01-16
 
 ### Added
@@ -67,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.0.8]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.8
 [1.0.7]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.7
 [1.0.6]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.6
 [1.0.5]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.5
