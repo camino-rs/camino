@@ -6,8 +6,10 @@
 //! orphan rules - this crate doesn't define `Rc`/`Arc` nor `Arbitrary`, so it can't define those
 //! implementations.
 
-use proptest::arbitrary::{any_with, Arbitrary, StrategyFor};
-use proptest::strategy::{MapInto, Strategy};
+use proptest::{
+    arbitrary::{any_with, Arbitrary, StrategyFor},
+    strategy::{MapInto, Strategy},
+};
 
 use crate::{Utf8Path, Utf8PathBuf};
 
