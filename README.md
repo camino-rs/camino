@@ -95,8 +95,8 @@ By default, `camino` has **no dependencies** other than `std`. There are some op
 dependencies:
 * `serde1` adds serde [`Serialize`] and [`Deserialize`] impls for [`Utf8PathBuf`] and [`Utf8Path`]
   (zero-copy).
-* `proptest1` adds [proptest](https://altsysrq.github.io/proptest-book/) [`Arbitrary`]
-  implementations for [`Utf8PathBuf`] and [`Box<Utf8Path>`].
+* `proptest1` adds [proptest](https://altsysrq.github.io/proptest-book/) `Arbitrary`
+  implementations for [`Utf8PathBuf`] and `Box<Utf8Path>`.
 
 ## Rust version support
 
