@@ -6,24 +6,49 @@
 //! orphan rules - this crate doesn't define `Rc`/`Arc` nor `Arbitrary`, so it can't define those
 //! implementations.
 
-use proptest::{
-    arbitrary::{any_with, Arbitrary, StrategyFor},
-    strategy::{MapInto, Strategy},
-};
+use proptest::{arbitrary::StrategyFor, prelude::*, strategy::MapInto};
 
 use crate::{Utf8Path, Utf8PathBuf};
 
+/// The [`Arbitrary`] impl for `Utf8PathBuf` returns a path with between 0 and 8 components,
+/// joined by the [`MAIN_SEPARATOR`](std::path::MAIN_SEPARATOR) for the platform.
+///
+/// On Unix, this generates an absolute path half of the time and a relative path the other half.
+///
+/// On Windows, this implementation doesn't currently generate
+/// [`Utf8PrefixComponent`](crate::Utf8PrefixComponent) instances, though in the future it might.
 impl Arbitrary for Utf8PathBuf {
     type Parameters = <String as Arbitrary>::Parameters;
-    type Strategy = MapInto<StrategyFor<String>, Self>;
+    type Strategy = BoxedStrategy<Self>;
+
     fn arbitrary_with(args: Self::Parameters) -> Self::Strategy {
-        any_with::<String>(args).prop_map_into()
+        (
+            any::<bool>(),
+            prop::collection::vec(any_with::<String>(args), 0..8),
+        )
+            .prop_map(|(is_relative, components)| {
+                let initial_component =
+                    is_relative.then(|| format!("{}", std::path::MAIN_SEPARATOR));
+                initial_component
+                    .into_iter()
+                    .chain(components.into_iter())
+                    .collect()
+            })
+            .boxed()
     }
 }
 
+/// The [`Arbitrary`] impl for `Box<Utf8Path>` returns a path with between 0 and 8 components,
+/// joined by the [`MAIN_SEPARATOR`](std::path::MAIN_SEPARATOR) for the platform.
+///
+/// On Unix, this generates an absolute path half of the time and a relative path the other half.
+///
+/// On Windows, this implementation doesn't currently generate
+/// [`Utf8PrefixComponent`](crate::Utf8PrefixComponent) instances, though in the future it might.
 impl Arbitrary for Box<Utf8Path> {
     type Parameters = <Utf8PathBuf as Arbitrary>::Parameters;
     type Strategy = MapInto<StrategyFor<Utf8PathBuf>, Self>;
+
     fn arbitrary_with(args: Self::Parameters) -> Self::Strategy {
         any_with::<Utf8PathBuf>(args).prop_map_into()
     }
