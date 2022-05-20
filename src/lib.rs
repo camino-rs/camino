@@ -1109,7 +1109,7 @@ impl Utf8Path {
     /// use camino::{Utf8Path, Utf8PathBuf};
     ///
     /// let path = Utf8Path::new("/foo/test/../test/bar.rs");
-    /// assert_eq!(path.canonicalize().unwrap(), Utf8PathBuf::from("/foo/test/bar.rs"));
+    /// assert_eq!(path.canonicalize_utf8().unwrap(), Utf8PathBuf::from("/foo/test/bar.rs"));
     /// ```
     pub fn canonicalize_utf8(&self) -> io::Result<Utf8PathBuf> {
         self.canonicalize().and_then(|path| {
@@ -1210,9 +1210,9 @@ impl Utf8Path {
     /// use camino::Utf8Path;
     ///
     /// let path = Utf8Path::new("/laputa");
-    /// for entry in path.read_dir().expect("read_dir call failed") {
+    /// for entry in path.read_dir_utf8().expect("read_dir call failed") {
     ///     if let Ok(entry) = entry {
-    ///         println!("{:?}", entry.path());
+    ///         println!("{}", entry.path());
     ///     }
     /// }
     /// ```
