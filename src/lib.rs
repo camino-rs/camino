@@ -1286,6 +1286,9 @@ impl Utf8Path {
 
     /// Returns `true` if the path points at an existing entity.
     ///
+    /// Warning: this method may be error-prone, consider using [`try_exists()`] instead!
+    /// It also has a risk of introducing time-of-check to time-of-use (TOCTOU) bugs.
+    ///
     /// This function will traverse symbolic links to query information about the
     /// destination file. In case of broken symbolic links this will return `false`.
     ///
@@ -1306,6 +1309,44 @@ impl Utf8Path {
     #[must_use]
     pub fn exists(&self) -> bool {
         self.0.exists()
+    }
+
+    /// Returns `Ok(true)` if the path points at an existing entity.
+    ///
+    /// This function will traverse symbolic links to query information about the
+    /// destination file. In case of broken symbolic links this will return `Ok(false)`.
+    ///
+    /// As opposed to the [`exists()`] method, this one doesn't silently ignore errors
+    /// unrelated to the path not existing. (E.g. it will return `Err(_)` in case of permission
+    /// denied on some of the parent directories.)
+    ///
+    /// Note that while this avoids some pitfalls of the `exists()` method, it still can not
+    /// prevent time-of-check to time-of-use (TOCTOU) bugs. You should only use it in scenarios
+    /// where those bugs are not an issue.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use camino::Utf8Path;
+    /// assert!(!Utf8Path::new("does_not_exist.txt").try_exists().expect("Can't check existence of file does_not_exist.txt"));
+    /// assert!(Utf8Path::new("/root/secret_file.txt").try_exists().is_err());
+    /// ```
+    ///
+    /// [`exists()`]: Self::exists
+    #[inline]
+    pub fn try_exists(&self) -> io::Result<bool> {
+        // Note: this block is written this way rather than with a pattern guard to appease Rust
+        // 1.34.
+        match fs::metadata(self) {
+            Ok(_) => Ok(true),
+            Err(error) => {
+                if error.kind() == io::ErrorKind::NotFound {
+                    Ok(false)
+                } else {
+                    Err(error)
+                }
+            }
+        }
     }
 
     /// Returns `true` if the path exists on disk and is pointing at a regular file.
