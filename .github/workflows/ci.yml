@@ -54,6 +54,9 @@ jobs:
       fail-fast: false
     env:
       RUSTFLAGS: -D warnings
+      # Use the Git CLI to do fetches -- apparently there's something wrong with the version of
+      # libgit2 shipped with Rust 1.44. This fixes that.
+      CARGO_NET_GIT_FETCH_WITH_CLI: true
     steps:
       - uses: actions/checkout@v2
         with:
