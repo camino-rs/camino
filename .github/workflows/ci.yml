@@ -50,7 +50,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         # 1.34 is the MSRV, and the other versions add new features through build.rs.
-        rust-version: [ 1.34, 1.44, stable ]
+        rust-version: [ 1.34, 1.44, 1.63, stable ]
       fail-fast: false
     env:
       RUSTFLAGS: -D warnings
