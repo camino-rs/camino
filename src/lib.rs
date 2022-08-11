@@ -455,6 +455,17 @@ impl Utf8PathBuf {
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit()
     }
+
+    /// Invokes [`shrink_to`] on the underlying instance of [`PathBuf`].
+    ///
+    /// *Requires Rust 1.56 or newer.*
+    ///
+    /// [`shrink_to`]: PathBuf::shrink_to
+    #[cfg(shrink_to)]
+    #[inline]
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        self.0.shrink_to(min_capacity)
+    }
 }
 
 impl Deref for Utf8PathBuf {

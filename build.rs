@@ -21,6 +21,9 @@ fn main() {
     if compiler.minor >= 44 {
         println!("cargo:rustc-cfg=path_buf_capacity");
     }
+    if compiler.minor >= 56 {
+        println!("cargo:rustc-cfg=shrink_to");
+    }
     if compiler.minor >= 63 {
         println!("cargo:rustc-cfg=try_reserve_2");
     }
