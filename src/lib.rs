@@ -408,6 +408,20 @@ impl Utf8PathBuf {
         self.0.reserve(additional)
     }
 
+    /// Invokes [`try_reserve`] on the underlying instance of [`PathBuf`].
+    ///
+    /// *Requires Rust 1.63 or newer.*
+    ///
+    /// [`try_reserve`]: PathBuf::try_reserve
+    #[cfg(try_reserve_2)]
+    #[inline]
+    pub fn try_reserve(
+        &mut self,
+        additional: usize,
+    ) -> Result<(), std::collections::TryReserveError> {
+        self.0.try_reserve(additional)
+    }
+
     /// Invokes [`reserve_exact`] on the underlying instance of [`PathBuf`].
     ///
     /// *Requires Rust 1.44 or newer.*
@@ -416,6 +430,20 @@ impl Utf8PathBuf {
     #[cfg(path_buf_capacity)]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.0.reserve_exact(additional)
+    }
+
+    /// Invokes [`try_reserve_exact`] on the underlying instance of [`PathBuf`].
+    ///
+    /// *Requires Rust 1.63 or newer.*
+    ///
+    /// [`try_reserve_exact`]: PathBuf::try_reserve_exact
+    #[cfg(try_reserve_2)]
+    #[inline]
+    pub fn try_reserve_exact(
+        &mut self,
+        additional: usize,
+    ) -> Result<(), std::collections::TryReserveError> {
+        self.0.try_reserve_exact(additional)
     }
 
     /// Invokes [`shrink_to_fit`] on the underlying instance of [`PathBuf`].
