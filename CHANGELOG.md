@@ -3,6 +3,14 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2022-08-12
+
+### Fixed
+
+- Fixed a build regression on older nightlies in the 1.63 series
+  ([#22](https://github.com/camino-rs/camino/issues/22)).
+- Documentation fixes.
+
 ## [1.1.0] - 2022-08-11
 
 ### Added
@@ -93,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.1]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.1
 [1.1.0]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.0
 [1.0.9]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.9
 [1.0.8]: https://github.com/camino-rs/camino/releases/tag/camino-1.0.8
