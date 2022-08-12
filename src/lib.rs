@@ -1306,6 +1306,8 @@ impl Utf8Path {
     ///
     /// This is a convenience function that coerces errors to false. If you want to
     /// check errors, call [`fs::metadata`].
+    ///
+    /// [`try_exists()`]: Self::try_exists
     #[must_use]
     pub fn exists(&self) -> bool {
         self.0.exists()

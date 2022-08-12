@@ -5,6 +5,8 @@ on:
       - main
 
 name: Docs
+env:
+  RUSTFLAGS: -D warnings
 
 jobs:
   docs:
