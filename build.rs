@@ -24,13 +24,18 @@ fn main() {
     if compiler.minor >= 56 {
         println!("cargo:rustc-cfg=shrink_to");
     }
-    if compiler.minor >= 63 {
+    if compiler.minor >= 63
+        && (!compiler.beta || compiler.minor >= 64)
+        && (!compiler.nightly || compiler.minor >= 65)
+    {
         println!("cargo:rustc-cfg=try_reserve_2");
     }
 }
 
 struct Compiler {
     minor: u32,
+    beta: bool,
+    nightly: bool,
 }
 
 fn rustc_version() -> Option<Compiler> {
@@ -42,5 +47,11 @@ fn rustc_version() -> Option<Compiler> {
         return None;
     }
     let minor = pieces.next()?.parse().ok()?;
-    Some(Compiler { minor })
+    let beta = version.contains("beta");
+    let nightly = version.contains("nightly");
+    Some(Compiler {
+        minor,
+        beta,
+        nightly,
+    })
 }
