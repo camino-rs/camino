@@ -222,7 +222,7 @@ impl Utf8PathBuf {
     #[must_use]
     pub fn as_path(&self) -> &Utf8Path {
         // SAFETY: every Utf8PathBuf constructor ensures that self is valid UTF-8
-        unsafe { Utf8Path::assume_utf8(&*self.0) }
+        unsafe { Utf8Path::assume_utf8(&self.0) }
     }
 
     /// Extends `self` with `path`.
@@ -2587,7 +2587,7 @@ impl AsRef<Path> for Utf8Path {
 
 impl AsRef<Path> for Utf8PathBuf {
     fn as_ref(&self) -> &Path {
-        &*self.0
+        &self.0
     }
 }
 
