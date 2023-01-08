@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added convenience methods [`FromPathBufError::into_io_error`] and
+- New convenience methods [`FromPathBufError::into_io_error`] and
   [`FromPathError::into_io_error`].
 
 ## [1.1.1] - 2022-08-12
