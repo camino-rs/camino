@@ -16,7 +16,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build rustdoc
         env:
-          - RUSTC_BOOTSTRAP: 1
+          RUSTC_BOOTSTRAP: 1
         run: cargo doc --all-features --workspace
       - name: Organize
         run: |
