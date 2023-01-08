@@ -52,6 +52,13 @@ jobs:
         # 1.34 is the MSRV, and the other versions add new features through build.rs.
         # nightly-2022-06-17 is the last toolchain before `try_reserve_2` was stabilized.
         rust-version: [ 1.34, 1.44, 1.56, nightly-2022-06-17, 1.63, stable ]
+        exclude:
+          # These versions started failing with "archive member 'lib.rmeta' with length 26456 is not
+          # mach-o or llvm bitcode file".
+          - os: macos-latest
+            rust-version: 1.34
+          - os: macos-latest
+            rust-version: 1.44
       fail-fast: false
     env:
       RUSTFLAGS: -D warnings
