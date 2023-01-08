@@ -17,6 +17,7 @@ jobs:
       - name: Build rustdoc
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTDOCFLAGS: -Dwarnings --cfg=doc_cfg
         run: cargo doc --all-features --workspace
       - name: Organize
         run: |
