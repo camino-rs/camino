@@ -1,12 +1,9 @@
 on:
   push:
     branches:
-      - master
       - main
 
 name: Docs
-env:
-  RUSTFLAGS: -D warnings
 
 jobs:
   docs:
@@ -14,24 +11,21 @@ jobs:
     concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Build rustdoc
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --all-features
+        env:
+          - RUSTC_BOOTSTRAP: 1
+        run: cargo doc --all-features --workspace
       - name: Organize
         run: |
+          rm -rf target/gh-pages
           mkdir target/gh-pages
           mv target/doc target/gh-pages/rustdoc
-          touch target/gh-pages/.nojekyll
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@releases/v3
+        uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: target/gh-pages
+          branch: gh-pages
+          folder: target/gh-pages
+          single-commit: true
