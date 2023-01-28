@@ -1,4 +1,4 @@
-# camino - UTF-8 encoded paths
+# camino - UTF-8 paths
 
 [![camino on crates.io](https://img.shields.io/crates/v/camino)](https://crates.io/crates/camino)
 [![crates.io download count](https://img.shields.io/crates/d/camino)](https://crates.io/crates/camino)
