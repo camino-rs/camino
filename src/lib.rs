@@ -2220,6 +2220,17 @@ impl Utf8DirEntry {
     pub fn into_inner(self) -> fs::DirEntry {
         self.inner
     }
+
+    /// Returns the full path to the file that this entry represents.
+    ///
+    /// This is analogous to [`path`], but moves ownership of the path.
+    ///
+    /// [`path`]: struct.Utf8DirEntry.html#method.path
+    #[inline]
+    #[must_use = "`self` will be dropped if the result is not used"]
+    pub fn into_path(self) -> Utf8PathBuf {
+        self.path
+    }
 }
 
 impl From<String> for Utf8PathBuf {
