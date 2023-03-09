@@ -44,7 +44,7 @@ use std::{
     hash::{Hash, Hasher},
     io,
     iter::FusedIterator,
-    ops::Deref,
+    ops::{Deref, DerefMut},
     path::*,
     rc::Rc,
     str::FromStr,
@@ -481,6 +481,13 @@ impl Deref for Utf8PathBuf {
 
     fn deref(&self) -> &Utf8Path {
         self.as_path()
+    }
+}
+
+impl DerefMut for Utf8PathBuf {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: every Utf8PathBuf constructor ensures that self is valid UTF-8
+        unsafe { Utf8Path::assume_utf8_mut(&mut self.0) }
     }
 }
 
@@ -1456,6 +1463,13 @@ impl Utf8Path {
         // SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a
         // *const Path to a *const Utf8Path is valid.
         &*(path as *const Path as *const Utf8Path)
+    }
+
+    // invariant: PathBuf must be guaranteed to be utf-8 data
+    unsafe fn assume_utf8_mut(path: &mut PathBuf) -> &mut Utf8Path {
+        // SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a
+        // *mut Path to a *mut Utf8Path is valid.
+        &mut *(&*path as &Path as *const Path as *mut Path as *mut Utf8Path)
     }
 }
 
