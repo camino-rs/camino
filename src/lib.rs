@@ -484,6 +484,7 @@ impl Deref for Utf8PathBuf {
     }
 }
 
+/// *Requires Rust 1.68 or newer.*
 #[cfg(path_buf_deref_mut)]
 impl std::ops::DerefMut for Utf8PathBuf {
     fn deref_mut(&mut self) -> &mut Self::Target {
