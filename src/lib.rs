@@ -484,6 +484,13 @@ impl Deref for Utf8PathBuf {
     }
 }
 
+#[cfg(path_buf_deref_mut)]
+impl std::ops::DerefMut for Utf8PathBuf {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { Utf8Path::assume_utf8_mut(&mut self.0) }
+    }
+}
+
 impl fmt::Debug for Utf8PathBuf {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
@@ -1456,6 +1463,11 @@ impl Utf8Path {
         // SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a
         // *const Path to a *const Utf8Path is valid.
         &*(path as *const Path as *const Utf8Path)
+    }
+
+    #[cfg(path_buf_deref_mut)]
+    unsafe fn assume_utf8_mut(path: &mut Path) -> &mut Utf8Path {
+        &mut *(path as *mut Path as *mut Utf8Path)
     }
 }
 

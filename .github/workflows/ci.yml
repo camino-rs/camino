@@ -38,8 +38,19 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         # 1.34 is the MSRV, and the other versions add new features through build.rs.
+        # The nightly versions are used to ensure that build.rs's version detection is compatible
+        # with them:
         # nightly-2022-06-17 is the last toolchain before `try_reserve_2` was stabilized.
-        rust-version: [ 1.34, 1.44, 1.56, nightly-2022-06-17, 1.63, stable ]
+        # nightly-2022-12-14 is the last toolchain before `path_buf_deref_mut` was stabilized.
+        rust-version:
+          - 1.34
+          - 1.44
+          - 1.56
+          - nightly-2022-06-17
+          - 1.63
+          - nightly-2022-12-14
+          - 1.68
+          - stable
         exclude:
           # These versions started failing with "archive member 'lib.rmeta' with length 26456 is not
           # mach-o or llvm bitcode file".
@@ -58,6 +69,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust-version }}
+      - name: Disable sparse registries on nightly-2022-12-14
+        # Sparse registries are experimental on this nightly, but are enabled by
+        # dtolnay/rust-toolchain.
+        if: matrix.rust-version == 'nightly-2022-12-14'
+        shell: bash
+        run: |
+          echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
       - name: Build the library
         run: cargo build
       - name: Test
@@ -70,3 +88,19 @@ jobs:
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
         run: cargo test --workspace --all-features
+
+  miri:
+    name: Check unsafe code against miri
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: rust-src, miri
+      - name: Test the library
+        run: cargo miri test
+        env:
+          MIRIFLAGS: -Zmiri-disable-isolation

@@ -24,12 +24,21 @@ fn main() {
     if compiler.minor >= 56 {
         println!("cargo:rustc-cfg=shrink_to");
     }
-    // Stable and beta 1.63 have a stable try_reserve_2.
+    // NOTE: the below checks use == rather than `matches!`. This is because `matches!` isn't stable
+    // on Rust 1.34.
+    // try_reserve_2 was added in a 1.63 nightly.
     if (compiler.minor >= 63
         && (compiler.channel == ReleaseChannel::Stable || compiler.channel == ReleaseChannel::Beta))
         || compiler.minor >= 64
     {
         println!("cargo:rustc-cfg=try_reserve_2");
+    }
+    // path_buf_deref_mut was added in a 1.68 nightly.
+    if (compiler.minor >= 68
+        && (compiler.channel == ReleaseChannel::Stable || compiler.channel == ReleaseChannel::Beta))
+        || compiler.minor >= 69
+    {
+        println!("cargo:rustc-cfg=path_buf_deref_mut");
     }
 }
 
