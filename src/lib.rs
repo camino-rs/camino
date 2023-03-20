@@ -2055,7 +2055,7 @@ impl<'a> fmt::Display for Utf8PrefixComponent<'a> {
 /// Iterator over the entries in a directory.
 ///
 /// This iterator is returned from [`Utf8Path::read_dir_utf8`] and will yield instances of
-/// <code>[io::Result]<[Utf8DirEntry]></code>. Through a [`Utf8 DirEntry`] information like the entry's path
+/// <code>[io::Result]<[Utf8DirEntry]></code>. Through a [`Utf8DirEntry`] information like the entry's path
 /// and possibly other metadata can be learned.
 ///
 /// The order in which this iterator returns entries is platform and filesystem
