@@ -9,3 +9,6 @@ updates:
       interval: "daily"
     allow:
       - dependency-type: all
+    ignore:
+      - dependency-name: "clap"
+        update-types: ["version-update:semver-major"]
