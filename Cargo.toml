@@ -7,6 +7,7 @@ description = "UTF-8 paths"
 version = "1.1.6"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+rust-version = "1.34.0"
 keywords = ["paths", "utf8", "unicode", "filesystem"]
 categories = ["development-tools", "filesystem", "os"]
 repository = "https://github.com/camino-rs/camino"
