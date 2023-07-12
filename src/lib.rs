@@ -622,6 +622,7 @@ impl Utf8Path {
     /// let new_utf8_path = Utf8Path::from_path(std_path).unwrap();
     /// assert_eq!(new_utf8_path, "foo.txt");
     /// ```
+    #[inline]
     pub fn as_std_path(&self) -> &Path {
         self.as_ref()
     }
@@ -641,6 +642,7 @@ impl Utf8Path {
     /// ```
     ///
     /// [`str`]: str
+    #[inline]
     #[must_use]
     pub fn as_str(&self) -> &str {
         // SAFETY: every Utf8Path constructor ensures that self is valid UTF-8
@@ -657,6 +659,7 @@ impl Utf8Path {
     /// let os_str = Utf8Path::new("foo.txt").as_os_str();
     /// assert_eq!(os_str, std::ffi::OsStr::new("foo.txt"));
     /// ```
+    #[inline]
     #[must_use]
     pub fn as_os_str(&self) -> &OsStr {
         self.0.as_os_str()
@@ -672,6 +675,7 @@ impl Utf8Path {
     /// let path_buf = Utf8Path::new("foo.txt").to_path_buf();
     /// assert_eq!(path_buf, Utf8PathBuf::from("foo.txt"));
     /// ```
+    #[inline]
     #[must_use = "this returns the result of the operation, \
                   without modifying the original"]
     pub fn to_path_buf(&self) -> Utf8PathBuf {
@@ -696,6 +700,7 @@ impl Utf8Path {
     /// ```
     ///
     /// [`has_root`]: Utf8Path::has_root
+    #[inline]
     #[must_use]
     pub fn is_absolute(&self) -> bool {
         self.0.is_absolute()
@@ -714,6 +719,7 @@ impl Utf8Path {
     /// ```
     ///
     /// [`is_absolute`]: Utf8Path::is_absolute
+    #[inline]
     #[must_use]
     pub fn is_relative(&self) -> bool {
         self.0.is_relative()
@@ -735,6 +741,7 @@ impl Utf8Path {
     ///
     /// assert!(Utf8Path::new("/etc/passwd").has_root());
     /// ```
+    #[inline]
     #[must_use]
     pub fn has_root(&self) -> bool {
         self.0.has_root()
@@ -757,6 +764,7 @@ impl Utf8Path {
     /// assert_eq!(grand_parent, Utf8Path::new("/"));
     /// assert_eq!(grand_parent.parent(), None);
     /// ```
+    #[inline]
     #[must_use]
     pub fn parent(&self) -> Option<&Utf8Path> {
         self.0.parent().map(|path| {
@@ -793,6 +801,7 @@ impl Utf8Path {
     /// ```
     ///
     /// [`parent`]: Utf8Path::parent
+    #[inline]
     pub fn ancestors(&self) -> Utf8Ancestors<'_> {
         Utf8Ancestors(self.0.ancestors())
     }
@@ -816,6 +825,7 @@ impl Utf8Path {
     /// assert_eq!(None, Utf8Path::new("foo.txt/..").file_name());
     /// assert_eq!(None, Utf8Path::new("/").file_name());
     /// ```
+    #[inline]
     #[must_use]
     pub fn file_name(&self) -> Option<&str> {
         self.0.file_name().map(|s| {
@@ -852,6 +862,7 @@ impl Utf8Path {
     /// let prefix = Utf8PathBuf::from("/test/");
     /// assert_eq!(path.strip_prefix(prefix), Ok(Utf8Path::new("haha/foo.txt")));
     /// ```
+    #[inline]
     pub fn strip_prefix(&self, base: impl AsRef<Path>) -> Result<&Utf8Path, StripPrefixError> {
         self.0.strip_prefix(base).map(|path| {
             // SAFETY: self is valid UTF-8, and strip_prefix returns a part of self (or an empty
@@ -882,6 +893,7 @@ impl Utf8Path {
     ///
     /// assert!(!Utf8Path::new("/etc/foo.rs").starts_with("/etc/foo"));
     /// ```
+    #[inline]
     #[must_use]
     pub fn starts_with(&self, base: impl AsRef<Path>) -> bool {
         self.0.starts_with(base)
@@ -905,6 +917,7 @@ impl Utf8Path {
     /// assert!(!path.ends_with("/resolv.conf"));
     /// assert!(!path.ends_with("conf")); // use .extension() instead
     /// ```
+    #[inline]
     #[must_use]
     pub fn ends_with(&self, base: impl AsRef<Path>) -> bool {
         self.0.ends_with(base)
@@ -929,6 +942,7 @@ impl Utf8Path {
     /// assert_eq!("foo", Utf8Path::new("foo.rs").file_stem().unwrap());
     /// assert_eq!("foo.tar", Utf8Path::new("foo.tar.gz").file_stem().unwrap());
     /// ```
+    #[inline]
     #[must_use]
     pub fn file_stem(&self) -> Option<&str> {
         self.0.file_stem().map(|s| {
@@ -956,6 +970,7 @@ impl Utf8Path {
     /// assert_eq!("rs", Utf8Path::new("foo.rs").extension().unwrap());
     /// assert_eq!("gz", Utf8Path::new("foo.tar.gz").extension().unwrap());
     /// ```
+    #[inline]
     #[must_use]
     pub fn extension(&self) -> Option<&str> {
         self.0.extension().map(|s| {
@@ -975,6 +990,7 @@ impl Utf8Path {
     ///
     /// assert_eq!(Utf8Path::new("/etc").join("passwd"), Utf8PathBuf::from("/etc/passwd"));
     /// ```
+    #[inline]
     #[must_use]
     pub fn join(&self, path: impl AsRef<Utf8Path>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.join(&path.as_ref().0))
@@ -992,6 +1008,7 @@ impl Utf8Path {
     ///
     /// assert_eq!(Utf8Path::new("/etc").join_os("passwd"), PathBuf::from("/etc/passwd"));
     /// ```
+    #[inline]
     #[must_use]
     pub fn join_os(&self, path: impl AsRef<Path>) -> PathBuf {
         self.0.join(path)
@@ -1012,6 +1029,7 @@ impl Utf8Path {
     /// let path = Utf8Path::new("/tmp");
     /// assert_eq!(path.with_file_name("var"), Utf8PathBuf::from("/var"));
     /// ```
+    #[inline]
     #[must_use]
     pub fn with_file_name(&self, file_name: impl AsRef<str>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.with_file_name(file_name.as_ref()))
@@ -1034,6 +1052,7 @@ impl Utf8Path {
     /// assert_eq!(path.with_extension("xz"), Utf8PathBuf::from("foo.tar.xz"));
     /// assert_eq!(path.with_extension("").with_extension("txt"), Utf8PathBuf::from("foo.txt"));
     /// ```
+    #[inline]
     pub fn with_extension(&self, extension: impl AsRef<str>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.with_extension(extension.as_ref()))
     }
@@ -1070,6 +1089,7 @@ impl Utf8Path {
     /// ```
     ///
     /// [`CurDir`]: Utf8Component::CurDir
+    #[inline]
     pub fn components(&self) -> Utf8Components {
         Utf8Components(self.0.components())
     }
@@ -1093,6 +1113,7 @@ impl Utf8Path {
     /// assert_eq!(it.next(), Some("foo.txt"));
     /// assert_eq!(it.next(), None)
     /// ```
+    #[inline]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.components(),
@@ -1115,6 +1136,7 @@ impl Utf8Path {
     /// let metadata = path.metadata().expect("metadata call failed");
     /// println!("{:?}", metadata.file_type());
     /// ```
+    #[inline]
     pub fn metadata(&self) -> io::Result<fs::Metadata> {
         self.0.metadata()
     }
@@ -1132,6 +1154,7 @@ impl Utf8Path {
     /// let metadata = path.symlink_metadata().expect("symlink_metadata call failed");
     /// println!("{:?}", metadata.file_type());
     /// ```
+    #[inline]
     pub fn symlink_metadata(&self) -> io::Result<fs::Metadata> {
         self.0.symlink_metadata()
     }
@@ -1154,6 +1177,7 @@ impl Utf8Path {
     /// let path = Utf8Path::new("/foo/test/../test/bar.rs");
     /// assert_eq!(path.canonicalize().unwrap(), PathBuf::from("/foo/test/bar.rs"));
     /// ```
+    #[inline]
     pub fn canonicalize(&self) -> io::Result<PathBuf> {
         self.0.canonicalize()
     }
@@ -1203,6 +1227,7 @@ impl Utf8Path {
     /// let path = Utf8Path::new("/laputa/sky_castle.rs");
     /// let path_link = path.read_link().expect("read_link call failed");
     /// ```
+    #[inline]
     pub fn read_link(&self) -> io::Result<PathBuf> {
         self.0.read_link()
     }
@@ -1253,6 +1278,7 @@ impl Utf8Path {
     ///     }
     /// }
     /// ```
+    #[inline]
     pub fn read_dir(&self) -> io::Result<fs::ReadDir> {
         self.0.read_dir()
     }
@@ -1313,6 +1339,7 @@ impl Utf8Path {
     ///
     /// [`try_exists()`]: Self::try_exists
     #[must_use]
+    #[inline]
     pub fn exists(&self) -> bool {
         self.0.exists()
     }
@@ -1383,6 +1410,7 @@ impl Utf8Path {
     /// a Unix-like system for example. See [`fs::File::open`] or
     /// [`fs::OpenOptions::open`] for more information.
     #[must_use]
+    #[inline]
     pub fn is_file(&self) -> bool {
         self.0.is_file()
     }
@@ -1409,6 +1437,7 @@ impl Utf8Path {
     /// check errors, call [`fs::metadata`] and handle its [`Result`]. Then call
     /// [`fs::Metadata::is_dir`] if it was [`Ok`].
     #[must_use]
+    #[inline]
     pub fn is_dir(&self) -> bool {
         self.0.is_dir()
     }
@@ -1448,6 +1477,7 @@ impl Utf8Path {
 
     /// Converts a `Box<Utf8Path>` into a [`Utf8PathBuf`] without copying or allocating.
     #[must_use = "`self` will be dropped if the result is not used"]
+    #[inline]
     pub fn into_path_buf(self: Box<Utf8Path>) -> Utf8PathBuf {
         let ptr = Box::into_raw(self) as *mut Path;
         // SAFETY:
@@ -1460,6 +1490,7 @@ impl Utf8Path {
     }
 
     // invariant: Path must be guaranteed to be utf-8 data
+    #[inline]
     unsafe fn assume_utf8(path: &Path) -> &Utf8Path {
         // SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a
         // *const Path to a *const Utf8Path is valid.
@@ -1467,6 +1498,7 @@ impl Utf8Path {
     }
 
     #[cfg(path_buf_deref_mut)]
+    #[inline]
     unsafe fn assume_utf8_mut(path: &mut Path) -> &mut Utf8Path {
         &mut *(path as *mut Path as *mut Utf8Path)
     }
@@ -1529,6 +1561,7 @@ impl<'a> fmt::Debug for Utf8Ancestors<'a> {
 impl<'a> Iterator for Utf8Ancestors<'a> {
     type Item = &'a Utf8Path;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next().map(|path| {
             // SAFETY: Utf8Ancestors was constructed from a Utf8Path, so it is guaranteed to
@@ -1577,6 +1610,7 @@ impl<'a> Utf8Components<'a> {
     /// assert_eq!(Utf8Path::new("foo/bar.txt"), components.as_path());
     /// ```
     #[must_use]
+    #[inline]
     pub fn as_path(&self) -> &'a Utf8Path {
         // SAFETY: Utf8Components was constructed from a Utf8Path, so it is guaranteed to be valid
         // UTF-8
@@ -1587,6 +1621,7 @@ impl<'a> Utf8Components<'a> {
 impl<'a> Iterator for Utf8Components<'a> {
     type Item = Utf8Component<'a>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next().map(|component| {
             // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
@@ -1599,6 +1634,7 @@ impl<'a> Iterator for Utf8Components<'a> {
 impl<'a> FusedIterator for Utf8Components<'a> {}
 
 impl<'a> DoubleEndedIterator for Utf8Components<'a> {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().map(|component| {
             // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
@@ -1615,24 +1651,28 @@ impl<'a> fmt::Debug for Utf8Components<'a> {
 }
 
 impl AsRef<Utf8Path> for Utf8Components<'_> {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         self.as_path()
     }
 }
 
 impl AsRef<Path> for Utf8Components<'_> {
+    #[inline]
     fn as_ref(&self) -> &Path {
         self.as_path().as_ref()
     }
 }
 
 impl AsRef<str> for Utf8Components<'_> {
+    #[inline]
     fn as_ref(&self) -> &str {
         self.as_path().as_ref()
     }
 }
 
 impl AsRef<OsStr> for Utf8Components<'_> {
+    #[inline]
     fn as_ref(&self) -> &OsStr {
         self.as_path().as_os_str()
     }
@@ -1681,30 +1721,35 @@ impl<'a> Iter<'a> {
     /// assert_eq!(Utf8Path::new("foo/bar.txt"), iter.as_path());
     /// ```
     #[must_use]
+    #[inline]
     pub fn as_path(&self) -> &'a Utf8Path {
         self.inner.as_path()
     }
 }
 
 impl AsRef<Utf8Path> for Iter<'_> {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         self.as_path()
     }
 }
 
 impl AsRef<Path> for Iter<'_> {
+    #[inline]
     fn as_ref(&self) -> &Path {
         self.as_path().as_ref()
     }
 }
 
 impl AsRef<str> for Iter<'_> {
+    #[inline]
     fn as_ref(&self) -> &str {
         self.as_path().as_ref()
     }
 }
 
 impl AsRef<OsStr> for Iter<'_> {
+    #[inline]
     fn as_ref(&self) -> &OsStr {
         self.as_path().as_os_str()
     }
@@ -1713,12 +1758,14 @@ impl AsRef<OsStr> for Iter<'_> {
 impl<'a> Iterator for Iter<'a> {
     type Item = &'a str;
 
+    #[inline]
     fn next(&mut self) -> Option<&'a str> {
         self.inner.next().map(|component| component.as_str())
     }
 }
 
 impl<'a> DoubleEndedIterator for Iter<'a> {
+    #[inline]
     fn next_back(&mut self) -> Option<&'a str> {
         self.inner.next_back().map(|component| component.as_str())
     }
@@ -1799,6 +1846,7 @@ impl<'a> Utf8Component<'a> {
     /// assert_eq!(&components, &[".", "tmp", "foo", "bar.txt"]);
     /// ```
     #[must_use]
+    #[inline]
     pub fn as_str(&self) -> &'a str {
         // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
         // valid UTF-8
@@ -1841,24 +1889,28 @@ impl<'a> fmt::Display for Utf8Component<'a> {
 }
 
 impl AsRef<Utf8Path> for Utf8Component<'_> {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         self.as_str().as_ref()
     }
 }
 
 impl AsRef<Path> for Utf8Component<'_> {
+    #[inline]
     fn as_ref(&self) -> &Path {
         self.as_os_str().as_ref()
     }
 }
 
 impl AsRef<str> for Utf8Component<'_> {
+    #[inline]
     fn as_ref(&self) -> &str {
         self.as_str()
     }
 }
 
 impl AsRef<OsStr> for Utf8Component<'_> {
+    #[inline]
     fn as_ref(&self) -> &OsStr {
         self.as_os_str()
     }
@@ -2023,6 +2075,7 @@ impl<'a> Utf8PrefixComponent<'a> {
 
     /// Returns the [`str`] slice for this prefix.
     #[must_use]
+    #[inline]
     pub fn as_str(&self) -> &'a str {
         // SAFETY: Utf8PrefixComponent was constructed from a Utf8Path, so it is guaranteed to be
         // valid UTF-8
@@ -2031,6 +2084,7 @@ impl<'a> Utf8PrefixComponent<'a> {
 
     /// Returns the raw [`OsStr`] slice for this prefix.
     #[must_use]
+    #[inline]
     pub fn as_os_str(&self) -> &'a OsStr {
         self.0.as_os_str()
     }
@@ -2499,11 +2553,13 @@ pub struct FromPathBufError {
 
 impl FromPathBufError {
     /// Returns the [`Path`] slice that was attempted to be converted to [`Utf8PathBuf`].
+    #[inline]
     pub fn as_path(&self) -> &Path {
         &self.path
     }
 
     /// Returns the [`PathBuf`] that was attempted to be converted to [`Utf8PathBuf`].
+    #[inline]
     pub fn into_path_buf(self) -> PathBuf {
         self.path
     }
@@ -2512,6 +2568,7 @@ impl FromPathBufError {
     ///
     /// At the moment this struct does not contain any additional information, but is provided for
     /// completeness.
+    #[inline]
     pub fn from_path_error(&self) -> FromPathError {
         self.error
     }
@@ -2600,60 +2657,70 @@ impl error::Error for FromPathError {
 // ---
 
 impl AsRef<Utf8Path> for Utf8Path {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         self
     }
 }
 
 impl AsRef<Utf8Path> for Utf8PathBuf {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         self.as_path()
     }
 }
 
 impl AsRef<Utf8Path> for str {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         Utf8Path::new(self)
     }
 }
 
 impl AsRef<Utf8Path> for String {
+    #[inline]
     fn as_ref(&self) -> &Utf8Path {
         Utf8Path::new(self)
     }
 }
 
 impl AsRef<Path> for Utf8Path {
+    #[inline]
     fn as_ref(&self) -> &Path {
         &self.0
     }
 }
 
 impl AsRef<Path> for Utf8PathBuf {
+    #[inline]
     fn as_ref(&self) -> &Path {
         &self.0
     }
 }
 
 impl AsRef<str> for Utf8Path {
+    #[inline]
     fn as_ref(&self) -> &str {
         self.as_str()
     }
 }
 
 impl AsRef<str> for Utf8PathBuf {
+    #[inline]
     fn as_ref(&self) -> &str {
         self.as_str()
     }
 }
 
 impl AsRef<OsStr> for Utf8Path {
+    #[inline]
     fn as_ref(&self) -> &OsStr {
         self.as_os_str()
     }
 }
 
 impl AsRef<OsStr> for Utf8PathBuf {
+    #[inline]
     fn as_ref(&self) -> &OsStr {
         self.as_os_str()
     }
@@ -2664,6 +2731,7 @@ impl AsRef<OsStr> for Utf8PathBuf {
 // ---
 
 impl Borrow<Utf8Path> for Utf8PathBuf {
+    #[inline]
     fn borrow(&self) -> &Utf8Path {
         self.as_path()
     }
@@ -2672,6 +2740,7 @@ impl Borrow<Utf8Path> for Utf8PathBuf {
 impl ToOwned for Utf8Path {
     type Owned = Utf8PathBuf;
 
+    #[inline]
     fn to_owned(&self) -> Utf8PathBuf {
         self.to_path_buf()
     }
@@ -2746,6 +2815,7 @@ impl Ord for Utf8Path {
 impl<'a> IntoIterator for &'a Utf8PathBuf {
     type Item = &'a str;
     type IntoIter = Iter<'a>;
+    #[inline]
     fn into_iter(self) -> Iter<'a> {
         self.iter()
     }
@@ -2754,6 +2824,7 @@ impl<'a> IntoIterator for &'a Utf8PathBuf {
 impl<'a> IntoIterator for &'a Utf8Path {
     type Item = &'a str;
     type IntoIter = Iter<'a>;
+    #[inline]
     fn into_iter(self) -> Iter<'a> {
         self.iter()
     }
