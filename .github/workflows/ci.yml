@@ -76,6 +76,8 @@ jobs:
         shell: bash
         run: |
           echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
       - name: Build the library
         run: cargo build
       - name: Test
@@ -83,11 +85,11 @@ jobs:
       - name: Build all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
-        run: cargo build --workspace --all-features
+        run: cargo hack --feature-powerset build --workspace
       - name: Test all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
-        run: cargo test --workspace --all-features
+        run: cargo hack --feature-powerset test --workspace
 
   miri:
     name: Check unsafe code against miri
