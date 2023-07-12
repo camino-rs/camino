@@ -3025,6 +3025,6 @@ unsafe fn str_assume_utf8(string: &OsStr) -> &str {
     // Adapted from the source code for Option::unwrap_unchecked.
     match string.to_str() {
         Some(val) => val,
-        None => unsafe { std::hint::unreachable_unchecked() },
+        None => std::hint::unreachable_unchecked(),
     }
 }
