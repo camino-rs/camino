@@ -644,7 +644,7 @@ impl Utf8Path {
     #[must_use]
     pub fn as_str(&self) -> &str {
         // SAFETY: every Utf8Path constructor ensures that self is valid UTF-8
-        unsafe { assume_utf8(self.as_os_str()) }
+        unsafe { str_assume_utf8(self.as_os_str()) }
     }
 
     /// Yields the underlying [`OsStr`] slice.
@@ -820,7 +820,7 @@ impl Utf8Path {
     pub fn file_name(&self) -> Option<&str> {
         self.0.file_name().map(|s| {
             // SAFETY: self is valid UTF-8, so file_name is valid UTF-8 as well
-            unsafe { assume_utf8(s) }
+            unsafe { str_assume_utf8(s) }
         })
     }
 
@@ -933,7 +933,7 @@ impl Utf8Path {
     pub fn file_stem(&self) -> Option<&str> {
         self.0.file_stem().map(|s| {
             // SAFETY: self is valid UTF-8, so file_stem is valid UTF-8 as well
-            unsafe { assume_utf8(s) }
+            unsafe { str_assume_utf8(s) }
         })
     }
 
@@ -960,7 +960,7 @@ impl Utf8Path {
     pub fn extension(&self) -> Option<&str> {
         self.0.extension().map(|s| {
             // SAFETY: self is valid UTF-8, so extension is valid UTF-8 as well
-            unsafe { assume_utf8(s) }
+            unsafe { str_assume_utf8(s) }
         })
     }
 
@@ -1783,7 +1783,7 @@ impl<'a> Utf8Component<'a> {
             Component::RootDir => Utf8Component::RootDir,
             Component::CurDir => Utf8Component::CurDir,
             Component::ParentDir => Utf8Component::ParentDir,
-            Component::Normal(s) => Utf8Component::Normal(assume_utf8(s)),
+            Component::Normal(s) => Utf8Component::Normal(str_assume_utf8(s)),
         }
     }
 
@@ -1802,7 +1802,7 @@ impl<'a> Utf8Component<'a> {
     pub fn as_str(&self) -> &'a str {
         // SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be
         // valid UTF-8
-        unsafe { assume_utf8(self.as_os_str()) }
+        unsafe { str_assume_utf8(self.as_os_str()) }
     }
 
     /// Extracts the underlying [`OsStr`] slice.
@@ -2004,17 +2004,17 @@ impl<'a> Utf8PrefixComponent<'a> {
         // SAFETY for all the below unsafe blocks: the path self was originally constructed from was
         // UTF-8 so any parts of it are valid UTF-8
         match self.0.kind() {
-            Prefix::Verbatim(prefix) => Utf8Prefix::Verbatim(unsafe { assume_utf8(prefix) }),
+            Prefix::Verbatim(prefix) => Utf8Prefix::Verbatim(unsafe { str_assume_utf8(prefix) }),
             Prefix::VerbatimUNC(server, share) => {
-                let server = unsafe { assume_utf8(server) };
-                let share = unsafe { assume_utf8(share) };
+                let server = unsafe { str_assume_utf8(server) };
+                let share = unsafe { str_assume_utf8(share) };
                 Utf8Prefix::VerbatimUNC(server, share)
             }
             Prefix::VerbatimDisk(drive) => Utf8Prefix::VerbatimDisk(drive),
-            Prefix::DeviceNS(prefix) => Utf8Prefix::DeviceNS(unsafe { assume_utf8(prefix) }),
+            Prefix::DeviceNS(prefix) => Utf8Prefix::DeviceNS(unsafe { str_assume_utf8(prefix) }),
             Prefix::UNC(server, share) => {
-                let server = unsafe { assume_utf8(server) };
-                let share = unsafe { assume_utf8(share) };
+                let server = unsafe { str_assume_utf8(server) };
+                let share = unsafe { str_assume_utf8(share) };
                 Utf8Prefix::UNC(server, share)
             }
             Prefix::Disk(drive) => Utf8Prefix::Disk(drive),
@@ -2026,7 +2026,7 @@ impl<'a> Utf8PrefixComponent<'a> {
     pub fn as_str(&self) -> &'a str {
         // SAFETY: Utf8PrefixComponent was constructed from a Utf8Path, so it is guaranteed to be
         // valid UTF-8
-        unsafe { assume_utf8(self.as_os_str()) }
+        unsafe { str_assume_utf8(self.as_os_str()) }
     }
 
     /// Returns the raw [`OsStr`] slice for this prefix.
@@ -2949,6 +2949,7 @@ impl_cmp_os_str!(&'a Utf8Path, OsString);
 // NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)
 
 // invariant: OsStr must be guaranteed to be utf8 data
-unsafe fn assume_utf8(string: &OsStr) -> &str {
-    &*(string as *const OsStr as *const str)
+#[inline]
+unsafe fn str_assume_utf8(string: &OsStr) -> &str {
+    string.to_str().unwrap_unchecked()
 }
