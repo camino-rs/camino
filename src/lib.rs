@@ -3022,5 +3022,9 @@ impl_cmp_os_str!(&'a Utf8Path, OsString);
 // invariant: OsStr must be guaranteed to be utf8 data
 #[inline]
 unsafe fn str_assume_utf8(string: &OsStr) -> &str {
-    string.to_str().unwrap_unchecked()
+    // Adapted from the source code for Option::unwrap_unchecked.
+    match string.to_str() {
+        Some(val) => val,
+        None => unsafe { std::hint::unreachable_unchecked() },
+    }
 }
