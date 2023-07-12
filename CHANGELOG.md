@@ -3,11 +3,15 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.5] - 2023-07-11
+## [1.1.6] - 2023-07-11
 
 ### Added
 
 - Implement `Deserialize` for `Box<Utf8Path>`.
+
+## [1.1.5] - 2023-07-11
+
+(This release was not published due to an internal issue.)
 
 ## [1.1.4] - 2023-03-09
 
@@ -126,6 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.6]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.6
 [1.1.5]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.5
 [1.1.4]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.4
 [1.1.3]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.3
