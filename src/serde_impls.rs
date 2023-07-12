@@ -6,7 +6,7 @@
 //! The Serde implementations for `Utf8PathBuf` are derived, but `Utf8Path` is an unsized type which
 //! the derive impls can't handle. Implement these by hand.
 
-use crate::Utf8Path;
+use crate::{Utf8Path, Utf8PathBuf};
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 
@@ -36,7 +36,6 @@ impl<'a> de::Visitor<'a> for Utf8PathVisitor {
     }
 }
 
-#[cfg(feature = "serde1")]
 impl<'de: 'a, 'a> Deserialize<'de> for &'a Utf8Path {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -46,7 +45,6 @@ impl<'de: 'a, 'a> Deserialize<'de> for &'a Utf8Path {
     }
 }
 
-#[cfg(feature = "serde1")]
 impl Serialize for Utf8Path {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -55,6 +53,20 @@ impl Serialize for Utf8Path {
         self.as_str().serialize(serializer)
     }
 }
+
+impl<'de> Deserialize<'de> for Box<Utf8Path> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(Utf8PathBuf::deserialize(deserializer)?.into())
+    }
+}
+
+// impl Serialize for Box<Utf8Path> comes from impl Serialize for Utf8Path.
+
+// Can't provide impls for Arc/Rc due to orphan rule issues, but we could provide
+// `with` impls in the future as requested.
 
 #[cfg(test)]
 mod tests {
@@ -73,6 +85,7 @@ mod tests {
 
             assert_valid_utf8::<DecodeOwned>(input, &encoded);
             assert_valid_utf8::<DecodeBorrowed>(input, &encoded);
+            assert_valid_utf8::<DecodeBoxed>(input, &encoded);
         }
     }
 
@@ -84,6 +97,8 @@ mod tests {
             "for input, with {}, paths should match",
             T::description()
         );
+        let roundtrip = bincode::serialize(&output).expect("message should roundtrip");
+        assert_eq!(roundtrip, encoded, "encoded path matches");
     }
 
     #[test]
@@ -101,7 +116,8 @@ mod tests {
             let encoded = bincode::serialize(&encode).expect("encoded correctly");
 
             assert_invalid_utf8::<DecodeOwned>(input, &encoded, *valid_up_to, *error_len);
-            assert_invalid_utf8::<DecodeBorrowed>(input, &encoded, *valid_up_to, *error_len)
+            assert_invalid_utf8::<DecodeBorrowed>(input, &encoded, *valid_up_to, *error_len);
+            assert_invalid_utf8::<DecodeBoxed>(input, &encoded, *valid_up_to, *error_len);
         }
     }
 
@@ -142,12 +158,12 @@ mod tests {
         path: ByteBuf,
     }
 
-    trait TestTrait<'de>: Deserialize<'de> + fmt::Debug {
+    trait TestTrait<'de>: Serialize + Deserialize<'de> + fmt::Debug {
         fn description() -> &'static str;
         fn path(&self) -> &Utf8Path;
     }
 
-    #[derive(Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug)]
     #[allow(unused)]
     struct DecodeOwned {
         path: Utf8PathBuf,
@@ -163,7 +179,7 @@ mod tests {
         }
     }
 
-    #[derive(Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug)]
     #[allow(unused)]
     struct DecodeBorrowed<'a> {
         #[serde(borrow)]
@@ -177,6 +193,22 @@ mod tests {
 
         fn path(&self) -> &Utf8Path {
             self.path
+        }
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
+    #[allow(unused)]
+    struct DecodeBoxed {
+        path: Box<Utf8Path>,
+    }
+
+    impl<'de> TestTrait<'de> for DecodeBoxed {
+        fn description() -> &'static str {
+            "DecodeBoxed"
+        }
+
+        fn path(&self) -> &Utf8Path {
+            &self.path
         }
     }
 }
