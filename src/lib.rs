@@ -2759,6 +2759,7 @@ impl<P: AsRef<Utf8Path>> std::iter::FromIterator<P> for Utf8PathBuf {
 // ---
 
 impl PartialEq for Utf8PathBuf {
+    #[inline]
     fn eq(&self, other: &Utf8PathBuf) -> bool {
         self.components() == other.components()
     }
@@ -2767,14 +2768,16 @@ impl PartialEq for Utf8PathBuf {
 impl Eq for Utf8PathBuf {}
 
 impl Hash for Utf8PathBuf {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_path().hash(state)
     }
 }
 
 impl PartialOrd for Utf8PathBuf {
+    #[inline]
     fn partial_cmp(&self, other: &Utf8PathBuf) -> Option<Ordering> {
-        self.components().partial_cmp(other.components())
+        Some(self.cmp(other))
     }
 }
 
@@ -2785,6 +2788,7 @@ impl Ord for Utf8PathBuf {
 }
 
 impl PartialEq for Utf8Path {
+    #[inline]
     fn eq(&self, other: &Utf8Path) -> bool {
         self.components().eq(other.components())
     }
@@ -2801,8 +2805,9 @@ impl Hash for Utf8Path {
 }
 
 impl PartialOrd for Utf8Path {
+    #[inline]
     fn partial_cmp(&self, other: &Utf8Path) -> Option<Ordering> {
-        self.components().partial_cmp(other.components())
+        Some(self.cmp(other))
     }
 }
 

@@ -32,10 +32,7 @@ impl Arbitrary for Utf8PathBuf {
             .prop_map(|(is_relative, components)| {
                 let initial_component =
                     is_relative.then(|| format!("{}", std::path::MAIN_SEPARATOR));
-                initial_component
-                    .into_iter()
-                    .chain(components.into_iter())
-                    .collect()
+                initial_component.into_iter().chain(components).collect()
             })
             .boxed()
     }
