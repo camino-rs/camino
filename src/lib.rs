@@ -2075,7 +2075,7 @@ impl<'a> Utf8PrefixComponent<'a> {
             }
             Prefix::Disk(drive) => Utf8Prefix::Disk(drive),
             #[cfg(target_os = "redox")]
-            Prefix::Scheme(scheme) => Utf8Prefix::Scheme(scheme),
+            Prefix::Scheme(scheme) => Utf8Prefix::Scheme(unsafe { str_assume_utf8(scheme) }),
         }
     }
 
