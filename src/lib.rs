@@ -1982,6 +1982,10 @@ pub enum Utf8Prefix<'a> {
 
     /// Prefix `C:` for the given disk drive.
     Disk(u8),
+
+    /// Redox Scheme
+    #[cfg(target_os = "redox")]
+    Scheme(&'a str),
 }
 
 impl<'a> Utf8Prefix<'a> {
@@ -2070,6 +2074,8 @@ impl<'a> Utf8PrefixComponent<'a> {
                 Utf8Prefix::UNC(server, share)
             }
             Prefix::Disk(drive) => Utf8Prefix::Disk(drive),
+            #[cfg(target_os = "redox")]
+            Prefix::Scheme(scheme) => Utf8Prefix::Scheme(scheme),
         }
     }
 
