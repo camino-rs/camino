@@ -78,6 +78,9 @@ jobs:
           echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
+      - name: Use pinned Cargo.lock for Rust 1.34 and 1.44
+        if: ${{ matrix.rust-version == 1.34 || matrix.rust-version == 1.44 }}
+        run: cp Cargo.lock.rust134 Cargo.lock
       - name: Build the library
         run: cargo build
       - name: Test
