@@ -55,9 +55,9 @@ jobs:
         exclude:
           # These versions started failing with "archive member 'lib.rmeta' with length 26456 is not
           # mach-o or llvm bitcode file".
-          - os: macos-m1
+          - os: macos-14
             rust-version: 1.34
-          - os: macos-m1
+          - os: macos-14
             rust-version: 1.44
       fail-fast: false
     env:
