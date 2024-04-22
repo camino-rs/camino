@@ -10,6 +10,13 @@ use std::{env, process::Command, str};
 // opening a GitHub issue if your build environment requires some way to enable
 // these cfgs other than by executing our build script.
 fn main() {
+    // Required by Rust 1.79+.
+    println!("cargo:rustc-check-cfg=cfg(doc_cfg)");
+    println!("cargo:rustc-check-cfg=cfg(path_buf_deref_mut)");
+    println!("cargo:rustc-check-cfg=cfg(path_buf_capacity)");
+    println!("cargo:rustc-check-cfg=cfg(shrink_to)");
+    println!("cargo:rustc-check-cfg=cfg(try_reserve_2)");
+
     let compiler = match rustc_version() {
         Some(compiler) => compiler,
         None => return,
