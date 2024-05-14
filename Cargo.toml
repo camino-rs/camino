@@ -4,7 +4,7 @@ members = [".", "camino-examples"]
 [package]
 name = "camino"
 description = "UTF-8 paths"
-version = "1.1.6"
+version = "1.1.7"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 rust-version = "1.34.0"
