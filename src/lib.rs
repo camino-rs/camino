@@ -33,6 +33,9 @@
 //! Instead, `camino` allows you to check that your paths are UTF-8 *once*, and then manipulate them
 //! as valid UTF-8 from there on, avoiding repeated lossy and confusing conversions.
 
+// General note: we use #[allow(clippy::incompatible_msrv)] for code that's already guarded by a
+// version-specific cfg conditional.
+
 use std::{
     borrow::{Borrow, Cow},
     cmp::Ordering,
@@ -204,6 +207,7 @@ impl Utf8PathBuf {
     ///
     /// [`with_capacity`]: PathBuf::with_capacity
     #[cfg(path_buf_capacity)]
+    #[allow(clippy::incompatible_msrv)]
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Utf8PathBuf {
         Utf8PathBuf(PathBuf::with_capacity(capacity))
@@ -391,6 +395,7 @@ impl Utf8PathBuf {
     ///
     /// [`capacity`]: PathBuf::capacity
     #[cfg(path_buf_capacity)]
+    #[allow(clippy::incompatible_msrv)]
     #[must_use]
     pub fn capacity(&self) -> usize {
         self.0.capacity()
@@ -402,6 +407,7 @@ impl Utf8PathBuf {
     ///
     /// [`clear`]: PathBuf::clear
     #[cfg(path_buf_capacity)]
+    #[allow(clippy::incompatible_msrv)]
     pub fn clear(&mut self) {
         self.0.clear()
     }
@@ -412,6 +418,7 @@ impl Utf8PathBuf {
     ///
     /// [`reserve`]: PathBuf::reserve
     #[cfg(path_buf_capacity)]
+    #[allow(clippy::incompatible_msrv)]
     pub fn reserve(&mut self, additional: usize) {
         self.0.reserve(additional)
     }
@@ -422,6 +429,7 @@ impl Utf8PathBuf {
     ///
     /// [`try_reserve`]: PathBuf::try_reserve
     #[cfg(try_reserve_2)]
+    #[allow(clippy::incompatible_msrv)]
     #[inline]
     pub fn try_reserve(
         &mut self,
@@ -436,6 +444,7 @@ impl Utf8PathBuf {
     ///
     /// [`reserve_exact`]: PathBuf::reserve_exact
     #[cfg(path_buf_capacity)]
+    #[allow(clippy::incompatible_msrv)]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.0.reserve_exact(additional)
     }
@@ -446,6 +455,7 @@ impl Utf8PathBuf {
     ///
     /// [`try_reserve_exact`]: PathBuf::try_reserve_exact
     #[cfg(try_reserve_2)]
+    #[allow(clippy::incompatible_msrv)]
     #[inline]
     pub fn try_reserve_exact(
         &mut self,
@@ -460,6 +470,7 @@ impl Utf8PathBuf {
     ///
     /// [`shrink_to_fit`]: PathBuf::shrink_to_fit
     #[cfg(path_buf_capacity)]
+    #[allow(clippy::incompatible_msrv)]
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit()
     }
@@ -470,6 +481,7 @@ impl Utf8PathBuf {
     ///
     /// [`shrink_to`]: PathBuf::shrink_to
     #[cfg(shrink_to)]
+    #[allow(clippy::incompatible_msrv)]
     #[inline]
     pub fn shrink_to(&mut self, min_capacity: usize) {
         self.0.shrink_to(min_capacity)
@@ -486,6 +498,7 @@ impl Deref for Utf8PathBuf {
 
 /// *Requires Rust 1.68 or newer.*
 #[cfg(path_buf_deref_mut)]
+#[allow(clippy::incompatible_msrv)]
 impl std::ops::DerefMut for Utf8PathBuf {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { Utf8Path::assume_utf8_mut(&mut self.0) }
