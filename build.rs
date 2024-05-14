@@ -10,6 +10,8 @@ use std::{env, process::Command, str};
 // opening a GitHub issue if your build environment requires some way to enable
 // these cfgs other than by executing our build script.
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+
     // Required by Rust 1.79+.
     println!("cargo:rustc-check-cfg=cfg(doc_cfg)");
     println!("cargo:rustc-check-cfg=cfg(path_buf_deref_mut)");
@@ -46,6 +48,21 @@ fn main() {
         || compiler.minor >= 69
     {
         println!("cargo:rustc-cfg=path_buf_deref_mut");
+    }
+
+    // Catch situations where the actual features aren't enabled. Currently, they're only shown with
+    // `-vv` output, but maybe that will be noticed.
+    #[cfg(all(feature = "proptest", not(feature = "proptest1")))]
+    {
+        println!(
+            "cargo:warning=proptest feature is enabled, but proptest1 isn't -- this won't do anything"
+        );
+    }
+    #[cfg(all(feature = "serde", not(feature = "serde1")))]
+    {
+        println!(
+            "cargo:warning=serde feature is enabled, but serde1 isn't -- this won't do anything"
+        );
     }
 }
 
