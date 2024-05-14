@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["main"],"static":["JSON_STR"],"struct":["MyStruct","MyStructBorrowed"]};
