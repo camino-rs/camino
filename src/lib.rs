@@ -701,10 +701,10 @@ impl Utf8Path {
     /// the current directory.
     ///
     /// * On Unix, a path is absolute if it starts with the root, so
-    /// `is_absolute` and [`has_root`] are equivalent.
+    ///   `is_absolute` and [`has_root`] are equivalent.
     ///
     /// * On Windows, a path is absolute if it has a prefix and starts with the
-    /// root: `c:\windows` is absolute, while `c:temp` and `\temp` are not.
+    ///   root: `c:\windows` is absolute, while `c:temp` and `\temp` are not.
     ///
     /// # Examples
     ///
@@ -3070,7 +3070,12 @@ unsafe fn str_assume_utf8(string: &OsStr) -> &str {
     #[cfg(os_str_bytes)]
     {
         // SAFETY: OsStr is guaranteed to be utf8 data from the invariant
-        unsafe { std::str::from_utf8_unchecked(string.as_encoded_bytes()) }
+        unsafe {
+            std::str::from_utf8_unchecked(
+                #[allow(clippy::incompatible_msrv)]
+                string.as_encoded_bytes(),
+            )
+        }
     }
     #[cfg(not(os_str_bytes))]
     {
