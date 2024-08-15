@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.8] - 2024-08-15
+
+### Changed
+
+- Use `OsStr::as_encoded_bytes` on Rust 1.74 and above, making conversions from `OsStr` to `str` virtually free ([#93](https://github.com/camino-rs/camino/pull/93)). Thanks [@h-a-n-a](https://github.com/h-a-n-a) for your first contribution!
+
 ## [1.1.7] - 2024-05-14
 
 ### Fixed
@@ -136,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.8]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.8
 [1.1.7]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.7
 [1.1.6]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.6
 [1.1.5]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.5
