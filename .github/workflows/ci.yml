@@ -26,8 +26,14 @@ jobs:
           components: rustfmt, clippy
       - name: Lint (clippy)
         run: cargo clippy --workspace --all-features --all-targets
+      - name: Lint (clippy in camino-examples)
+        run: |
+          cd camino-examples && cargo clippy --all-features --all-targets
       - name: Lint (rustfmt)
         run: cargo xfmt --check
+      - name: Lint (rustfmt in camino-examples)
+        run: |
+          cd camino-examples && cargo xfmt --check
       - name: Check for differences
         run: git diff --exit-code
 
@@ -95,6 +101,14 @@ jobs:
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
         run: cargo hack --feature-powerset test --workspace --all-targets
+      - name: Build camino-examples
+        if: ${{ matrix.rust-version == 'stable' }}
+        run: |
+          cd camino-examples && cargo build
+      - name: Test camino-examples
+        if: ${{ matrix.rust-version == 'stable' }}
+        run: |
+          cd camino-examples && cargo test
 
   miri:
     name: Check unsafe code against miri
