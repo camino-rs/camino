@@ -85,6 +85,9 @@ jobs:
         run: cp Cargo.lock.rust134 Cargo.lock
       - name: Build the library
         run: cargo build
+      # Remove criterion to support testing with earlier versions
+      - name: Remove criterion
+        run: cargo remove --dev criterion
       - name: Test
         run: cargo test
       - name: Build all targets with all features
