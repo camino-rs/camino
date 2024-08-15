@@ -12,5 +12,12 @@ clap = { version = "3.0.7", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1.0.62" }
 
+[dev-dependencies]
+criterion = "0.5.1"
+
 [[bin]]
 name = "serde"
+
+[[bench]]
+name = "bench"
+harness = false

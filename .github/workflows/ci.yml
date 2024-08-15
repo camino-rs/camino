@@ -80,26 +80,21 @@ jobs:
           echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
-      - name: Install cargo-rm
-        run: cargo install cargo-edit --version 0.11.0
       - name: Use pinned Cargo.lock for Rust 1.34 and 1.44
         if: ${{ matrix.rust-version == 1.34 || matrix.rust-version == 1.44 }}
         run: cp Cargo.lock.rust134 Cargo.lock
       - name: Build the library
         run: cargo build
-      # Remove criterion to support testing with earlier versions
-      - name: Remove criterion
-        run: cargo-rm rm --dev criterion
       - name: Test
         run: cargo test
       - name: Build all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
-        run: cargo hack --feature-powerset build --workspace
+        run: cargo hack --feature-powerset build --workspace --all-targets
       - name: Test all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
-        run: cargo hack --feature-powerset test --workspace
+        run: cargo hack --feature-powerset test --workspace --all-targets
 
   miri:
     name: Check unsafe code against miri

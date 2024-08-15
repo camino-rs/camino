@@ -1,6 +1,11 @@
-use criterion::*;
+// Copyright (c) The camino Contributors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+// This benchmark is here because criterion has a higher MSRV than camino -- camino-examples is only
+// tested on stable, which is good enough.
 
 use camino::Utf8PathBuf;
+use criterion::*;
 
 fn bench_path(c: &mut Criterion) {
     let mut group = c.benchmark_group("Path");
