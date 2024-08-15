@@ -18,6 +18,7 @@ fn main() {
     println!("cargo:rustc-check-cfg=cfg(path_buf_capacity)");
     println!("cargo:rustc-check-cfg=cfg(shrink_to)");
     println!("cargo:rustc-check-cfg=cfg(try_reserve_2)");
+    println!("cargo:rustc-check-cfg=cfg(os_str_bytes)");
 
     let compiler = match rustc_version() {
         Some(compiler) => compiler,
@@ -48,6 +49,11 @@ fn main() {
         || compiler.minor >= 69
     {
         println!("cargo:rustc-cfg=path_buf_deref_mut");
+    }
+    // os_str_bytes was added in a 1.74 stable.
+    if (compiler.minor >= 74 && compiler.channel == ReleaseChannel::Stable) || compiler.minor >= 75
+    {
+        println!("cargo:rustc-cfg=os_str_bytes");
     }
 
     // Catch situations where the actual features aren't enabled. Currently, they're only shown with

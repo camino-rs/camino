@@ -51,6 +51,7 @@ jobs:
           - 1.63
           - nightly-2022-12-14
           - 1.68
+          - 1.74
           - stable
         exclude:
           # These versions started failing with "archive member 'lib.rmeta' with length 26456 is not
