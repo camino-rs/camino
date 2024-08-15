@@ -26,8 +26,14 @@ jobs:
           components: rustfmt, clippy
       - name: Lint (clippy)
         run: cargo clippy --workspace --all-features --all-targets
+      - name: Lint (clippy in camino-examples)
+        run: |
+          cd camino-examples && cargo clippy --all-features --all-targets
       - name: Lint (rustfmt)
         run: cargo xfmt --check
+      - name: Lint (rustfmt in camino-examples)
+        run: |
+          cd camino-examples && cargo xfmt --check
       - name: Check for differences
         run: git diff --exit-code
 
@@ -51,6 +57,7 @@ jobs:
           - 1.63
           - nightly-2022-12-14
           - 1.68
+          - 1.74
           - stable
         exclude:
           # These versions started failing with "archive member 'lib.rmeta' with length 26456 is not
@@ -89,11 +96,19 @@ jobs:
       - name: Build all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
-        run: cargo hack --feature-powerset build --workspace
+        run: cargo hack --feature-powerset build --workspace --all-targets
       - name: Test all targets with all features
         # Some optional features are not compatible with earlier versions
         if: ${{ matrix.rust-version == 'stable' }}
-        run: cargo hack --feature-powerset test --workspace
+        run: cargo hack --feature-powerset test --workspace --all-targets
+      - name: Build camino-examples
+        if: ${{ matrix.rust-version == 'stable' }}
+        run: |
+          cd camino-examples && cargo build
+      - name: Test camino-examples
+        if: ${{ matrix.rust-version == 'stable' }}
+        run: |
+          cd camino-examples && cargo test
 
   miri:
     name: Check unsafe code against miri
