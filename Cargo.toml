@@ -21,6 +21,10 @@ authors = [
 edition = "2018"
 exclude = [".cargo/**/*", ".github/**/*"]
 
+[[bench]]
+name    = "bench"
+harness = false
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg=doc_cfg"]
@@ -32,6 +36,7 @@ serde = { version = "1", features = ["derive"], optional = true }
 [dev-dependencies]
 bincode = "1"
 serde_bytes = "0.11.8"
+criterion = "0.5.1"
 
 [features]
 serde1 = ["serde"]
