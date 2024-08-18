@@ -3,6 +3,13 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.9] - 2024-08-17
+
+### Added
+
+- Top-level function `absolute_utf8` wraps `std::path::absolute`, converting paths to UTF-8.
+  Requires Rust 1.79 and above.
+
 ## [1.1.8] - 2024-08-15
 
 ### Changed
@@ -142,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.9]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.9
 [1.1.8]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.8
 [1.1.7]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.7
 [1.1.6]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.6
