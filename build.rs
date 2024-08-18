@@ -19,6 +19,7 @@ fn main() {
     println!("cargo:rustc-check-cfg=cfg(shrink_to)");
     println!("cargo:rustc-check-cfg=cfg(try_reserve_2)");
     println!("cargo:rustc-check-cfg=cfg(os_str_bytes)");
+    println!("cargo:rustc-check-cfg=cfg(absolute_path)");
 
     let compiler = match rustc_version() {
         Some(compiler) => compiler,
@@ -50,10 +51,15 @@ fn main() {
     {
         println!("cargo:rustc-cfg=path_buf_deref_mut");
     }
-    // os_str_bytes was added in a 1.74 stable.
+    // os_str_bytes was added in 1.74.
     if (compiler.minor >= 74 && compiler.channel == ReleaseChannel::Stable) || compiler.minor >= 75
     {
         println!("cargo:rustc-cfg=os_str_bytes");
+    }
+    // absolute_path was added in 1.79.
+    if (compiler.minor >= 79 && compiler.channel == ReleaseChannel::Stable) || compiler.minor >= 80
+    {
+        println!("cargo:rustc-cfg=absolute_path");
     }
 
     // Catch situations where the actual features aren't enabled. Currently, they're only shown with
