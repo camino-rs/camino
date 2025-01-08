@@ -98,6 +98,8 @@ dependencies:
 
 - `serde1` adds serde [`Serialize`] and [`Deserialize`] impls for [`Utf8PathBuf`] and [`Utf8Path`]
   (zero-copy).
+- `sea-orm1` adds [`ValueType`] and [related](https://www.sea-ql.org/SeaORM/docs/0.10.x/generate-entity/newtype/)
+  impls for [`UtfPathBuf`], allowing you to use it as the column type.
 - `proptest1` adds [proptest](https://altsysrq.github.io/proptest-book/) [`Arbitrary`]
   implementations for [`Utf8PathBuf`] and `Box<Utf8Path>`.
 
@@ -134,5 +136,6 @@ or the [MIT license](https://github.com/rust-lang/rust/blob/master/LICENSE-MIT).
 [`std::path::Path`]: https://doc.rust-lang.org/std/path/struct.Path.html
 [`Serialize`]: https://docs.rs/serde/1/serde/trait.Serialize.html
 [`Deserialize`]: https://docs.rs/serde/1/serde/trait.Deserialize.html
+[`ValueType`]: https://docs.rs/sea-query/*/sea_query/value/trait.ValueType.html
 [`camino-examples`]: https://github.com/camino-rs/camino/tree/main/camino-examples
 [`Arbitrary`]: https://docs.rs/proptest/1/proptest/arbitrary/trait.Arbitrary.html

@@ -56,6 +56,8 @@ use std::{
 
 #[cfg(feature = "proptest1")]
 mod proptest_impls;
+#[cfg(feature = "sea-orm1")]
+mod sea_orm_impls;
 #[cfg(feature = "serde1")]
 mod serde_impls;
 #[cfg(test)]

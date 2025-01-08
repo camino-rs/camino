@@ -27,6 +27,7 @@ rustdoc-args = ["--cfg=doc_cfg"]
 
 [dependencies]
 proptest = { version = "1.0.0", optional = true }
+sea-orm = { version = "1", features = ["macros"], optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
@@ -35,4 +36,5 @@ serde_bytes = "0.11.8"
 
 [features]
 serde1 = ["serde"]
+sea-orm1 = ["sea-orm"]
 proptest1 = ["proptest"]
