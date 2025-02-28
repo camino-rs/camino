@@ -169,7 +169,7 @@ mod tests {
         path: Utf8PathBuf,
     }
 
-    impl<'de> TestTrait<'de> for DecodeOwned {
+    impl TestTrait<'_> for DecodeOwned {
         fn description() -> &'static str {
             "DecodeOwned"
         }
@@ -202,7 +202,7 @@ mod tests {
         path: Box<Utf8Path>,
     }
 
-    impl<'de> TestTrait<'de> for DecodeBoxed {
+    impl TestTrait<'_> for DecodeBoxed {
         fn description() -> &'static str {
             "DecodeBoxed"
         }

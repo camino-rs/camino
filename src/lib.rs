@@ -1567,7 +1567,7 @@ impl fmt::Debug for Utf8Path {
 #[repr(transparent)]
 pub struct Utf8Ancestors<'a>(Ancestors<'a>);
 
-impl<'a> fmt::Debug for Utf8Ancestors<'a> {
+impl fmt::Debug for Utf8Ancestors<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&self.0, f)
     }
@@ -1586,7 +1586,7 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
     }
 }
 
-impl<'a> FusedIterator for Utf8Ancestors<'a> {}
+impl FusedIterator for Utf8Ancestors<'_> {}
 
 /// An iterator over the [`Utf8Component`]s of a [`Utf8Path`].
 ///
@@ -1646,9 +1646,9 @@ impl<'a> Iterator for Utf8Components<'a> {
     }
 }
 
-impl<'a> FusedIterator for Utf8Components<'a> {}
+impl FusedIterator for Utf8Components<'_> {}
 
-impl<'a> DoubleEndedIterator for Utf8Components<'a> {
+impl DoubleEndedIterator for Utf8Components<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().map(|component| {
@@ -1659,7 +1659,7 @@ impl<'a> DoubleEndedIterator for Utf8Components<'a> {
     }
 }
 
-impl<'a> fmt::Debug for Utf8Components<'a> {
+impl fmt::Debug for Utf8Components<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&self.0, f)
     }
@@ -1891,13 +1891,13 @@ impl<'a> Utf8Component<'a> {
     }
 }
 
-impl<'a> fmt::Debug for Utf8Component<'a> {
+impl fmt::Debug for Utf8Component<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(self.as_os_str(), f)
     }
 }
 
-impl<'a> fmt::Display for Utf8Component<'a> {
+impl fmt::Display for Utf8Component<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self.as_str(), f)
     }
@@ -1999,7 +1999,7 @@ pub enum Utf8Prefix<'a> {
     Disk(u8),
 }
 
-impl<'a> Utf8Prefix<'a> {
+impl Utf8Prefix<'_> {
     /// Determines if the prefix is verbatim, i.e., begins with `\\?\`.
     ///
     /// # Examples
@@ -2105,13 +2105,13 @@ impl<'a> Utf8PrefixComponent<'a> {
     }
 }
 
-impl<'a> fmt::Debug for Utf8PrefixComponent<'a> {
+impl fmt::Debug for Utf8PrefixComponent<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&self.0, f)
     }
 }
 
-impl<'a> fmt::Display for Utf8PrefixComponent<'a> {
+impl fmt::Display for Utf8PrefixComponent<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self.as_str(), f)
     }
