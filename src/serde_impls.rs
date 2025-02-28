@@ -7,7 +7,7 @@
 //! the derive impls can't handle. Implement these by hand.
 
 use crate::{Utf8Path, Utf8PathBuf};
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use std::fmt;
 
 struct Utf8PathVisitor;
