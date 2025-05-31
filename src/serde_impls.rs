@@ -73,6 +73,7 @@ mod tests {
     use super::*;
     use crate::Utf8PathBuf;
     use serde_bytes::ByteBuf;
+    use serde_derive::{Deserialize, Serialize};
 
     #[test]
     fn valid_utf8() {
