@@ -136,3 +136,4 @@ or the [MIT license](https://github.com/rust-lang/rust/blob/master/LICENSE-MIT).
 [`Deserialize`]: https://docs.rs/serde/1/serde/trait.Deserialize.html
 [`camino-examples`]: https://github.com/camino-rs/camino/tree/main/camino-examples
 [`Arbitrary`]: https://docs.rs/proptest/1/proptest/arbitrary/trait.Arbitrary.html
+
