@@ -90,6 +90,9 @@ jobs:
       - name: Use pinned Cargo.lock for Rust 1.34 and 1.44
         if: ${{ matrix.rust-version == 1.34 || matrix.rust-version == 1.44 }}
         run: cp Cargo.lock.rust134 Cargo.lock
+      - name: Use pinned Cargo.lock for Rust 1.56-1.63
+        if: ${{ matrix.rust-version == 1.56 || matrix.rust-version == 'nightly-2022-06-17' ||  matrix.rust-version == 1.63 }}
+        run: cp Cargo.lock.rust156 Cargo.lock
       - name: Build the library
         run: cargo build
       - name: Test
