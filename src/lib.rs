@@ -108,7 +108,10 @@ mod tests;
 /// Which method works best depends on what kind of situation you're in.
 // NB: Internal PathBuf must only contain utf8 data
 #[derive(Clone, Default)]
-#[cfg_attr(feature = "serde1", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde1",
+    derive(serde_derive::Serialize, serde_derive::Deserialize)
+)]
 #[cfg_attr(feature = "serde1", serde(transparent))]
 #[repr(transparent)]
 pub struct Utf8PathBuf(PathBuf);
