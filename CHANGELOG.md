@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.10] - 2025-06-02
+
+### Changed
+
+- Hand-write serde implementations, dropping the dependency on `serde_derive`. Thanks to [Enselic](https://github.com/Enselic) for initiating the discussion and for your first contribution!
+
 ## [1.1.9] - 2024-08-17
 
 ### Added
@@ -149,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.10]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.10
 [1.1.9]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.9
 [1.1.8]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.8
 [1.1.7]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.7
