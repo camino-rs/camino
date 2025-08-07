@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.11] - 2025-08-17
+
+### Added
+
+- `Utf8PathBuf::leak` on Rust 1.89 and above.
+
 ## [1.1.10] - 2025-06-02
 
 ### Changed
@@ -155,6 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.11]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.11
 [1.1.10]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.10
 [1.1.9]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.9
 [1.1.8]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.8
