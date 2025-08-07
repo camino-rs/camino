@@ -1103,7 +1103,7 @@ impl Utf8Path {
     ///
     /// [`CurDir`]: Utf8Component::CurDir
     #[inline]
-    pub fn components(&self) -> Utf8Components {
+    pub fn components(&self) -> Utf8Components<'_> {
         Utf8Components(self.0.components())
     }
 
