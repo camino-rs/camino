@@ -227,6 +227,27 @@ impl Utf8PathBuf {
         unsafe { Utf8Path::assume_utf8(&self.0) }
     }
 
+    /// Consumes and leaks the `Utf8PathBuf`, returning a mutable reference to the contents,
+    /// `&'a mut Utf8Path`.
+    ///
+    /// The caller has free choice over the returned lifetime, including 'static.
+    /// Indeed, this function is ideally used for data that lives for the remainder of
+    /// the program’s life, as dropping the returned reference will cause a memory leak.
+    ///
+    /// It does not reallocate or shrink the `Utf8PathBuf`, so the leaked allocation may include
+    /// unused capacity that is not part of the returned slice. If you want to discard excess
+    /// capacity, call [`into_boxed_path`], and then [`Box::leak`] instead.
+    /// However, keep in mind that trimming the capacity may result in a reallocation and copy.
+    ///
+    /// [`into_boxed_path`]: Self::into_boxed_path
+    #[cfg(os_string_pathbuf_leak)]
+    #[allow(clippy::incompatible_msrv)]
+    #[inline]
+    pub fn leak<'a>(self) -> &'a mut Utf8Path {
+        // SAFETY: every Utf8PathBuf constructor ensures that self is valid UTF-8
+        unsafe { Utf8Path::assume_utf8_mut(self.0.leak()) }
+    }
+
     /// Extends `self` with `path`.
     ///
     /// If `path` is absolute, it replaces the current path.
