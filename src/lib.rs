@@ -2553,6 +2553,14 @@ impl TryFrom<PathBuf> for Utf8PathBuf {
     }
 }
 
+impl TryFrom<OsString> for Utf8PathBuf {
+    type Error = OsString;
+
+    fn try_from(os_string: OsString) -> Result<Utf8PathBuf, Self::Error> {
+        os_string.into_string().map(|s| Utf8PathBuf(s.into()))
+    }
+}
+
 /// Converts a [`Path`] to a [`Utf8Path`].
 ///
 /// Returns [`FromPathError`] if the path is not valid UTF-8.
@@ -2583,6 +2591,37 @@ impl<'a> TryFrom<&'a Path> for &'a Utf8Path {
 
     fn try_from(path: &'a Path) -> Result<&'a Utf8Path, Self::Error> {
         Utf8Path::from_path(path).ok_or(FromPathError(()))
+    }
+}
+
+/// Converts an [`OsStr`] to a [`Utf8Path`].
+///
+/// Returns the original [`OsStr`] if it is not valid UTF-8.
+///
+/// # Examples
+///
+/// ```
+/// use camino::Utf8Path;
+/// use std::convert::TryFrom;
+/// use std::ffi::OsStr;
+/// # #[cfg(unix)]
+/// use std::os::unix::ffi::OsStrExt;
+/// use std::path::Path;
+///
+/// # #[cfg(unix)]
+/// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+/// # #[cfg(unix)]
+/// assert!(<&Utf8Path>::try_from(non_unicode_str).is_err(), "non-Unicode string path failed");
+/// ```
+impl<'a> TryFrom<&'a OsStr> for &'a Utf8Path {
+    type Error = &'a OsStr;
+
+    fn try_from(path: &'a OsStr) -> Result<&'a Utf8Path, Self::Error> {
+        if let Some(s) = path.to_str() {
+            Ok(Utf8Path::new(s))
+        } else {
+            Err(path)
+        }
     }
 }
 
