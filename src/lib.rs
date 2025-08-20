@@ -2846,7 +2846,8 @@ impl error::Error for FromPathError {
 /// use std::os::unix::ffi::OsStrExt;
 ///
 /// let unicode_string = OsString::from_str("/valid/unicode").unwrap();
-/// let utf8_path_buf: Utf8PathBuf = unicode_string.try_into().expect("valid Unicode path succeeded");
+/// let utf8_path_buf: Utf8PathBuf = unicode_string.try_into()
+///     .expect("valid Unicode path succeeded");
 ///
 /// // Paths on Unix can be non-UTF-8.
 /// # #[cfg(unix)]
@@ -2890,11 +2891,11 @@ impl FromOsStringError {
     /// Converts self into a [`std::io::Error`] with kind
     /// [`InvalidData`](io::ErrorKind::InvalidData).
     ///
-    /// Many users of [`FromOsStringError`] will want to convert it into an [`io::Error`]. This is a
-    /// convenience method to do that.
+    /// Many users of [`FromOsStringError`] will want to convert it into an [`io::Error`].
+    /// This is a convenience method to do that.
     pub fn into_io_error(self) -> io::Error {
-        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error` because we want
-        // to ensure the user actually desires that conversion.
+        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error`
+        // because we want to ensure the user actually desires that conversion.
         io::Error::new(io::ErrorKind::InvalidData, self)
     }
 }
@@ -2950,8 +2951,8 @@ impl FromOsStrError {
     /// Many users of [`FromOsStrError`] will want to convert it into an [`io::Error`]. This is a
     /// convenience method to do that.
     pub fn into_io_error(self) -> io::Error {
-        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error` because we want
-        // to ensure the user actually desires that conversion.
+        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error`
+        // because we want to ensure the user actually desires that conversion.
         io::Error::new(io::ErrorKind::InvalidData, self)
     }
 }
@@ -3415,11 +3416,12 @@ impl_cmp_os_str!(&'a Utf8Path, OsString);
 ///     https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew
 #[cfg(absolute_path)]
 pub fn absolute_utf8<P: AsRef<Path>>(path: P) -> io::Result<Utf8PathBuf> {
-    // Note that even if the passed in path is valid UTF-8, it is not guaranteed that the absolute
-    // path will be valid UTF-8. For example, the current directory may not be valid UTF-8.
+    // Note that even if the passed in path is valid UTF-8, it is not guaranteed
+    // that the absolute path will be valid UTF-8. For example, the current
+    // directory may not be valid UTF-8.
     //
-    // That's why we take `AsRef<Path>` instead of `AsRef<Utf8Path>` here -- we have to pay the cost
-    // of checking for valid UTF-8 anyway.
+    // That's why we take `AsRef<Path>` instead of `AsRef<Utf8Path>` here -- we
+    // have to pay the cost of checking for valid UTF-8 anyway.
     let path = path.as_ref();
     #[allow(clippy::incompatible_msrv)]
     Utf8PathBuf::try_from(std::path::absolute(path)?).map_err(|error| error.into_io_error())
