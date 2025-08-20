@@ -1402,7 +1402,11 @@ impl Utf8Path {
     ///
     /// ```no_run
     /// use camino::Utf8Path;
-    /// assert!(!Utf8Path::new("does_not_exist.txt").try_exists().expect("Can't check existence of file does_not_exist.txt"));
+    /// assert!(
+    ///     !Utf8Path::new("does_not_exist.txt")
+    ///         .try_exists()
+    ///         .expect("Can't check existence of file does_not_exist.txt")
+    /// );
     /// assert!(Utf8Path::new("/root/secret_file.txt").try_exists().is_err());
     /// ```
     ///
