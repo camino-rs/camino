@@ -2166,7 +2166,8 @@ impl fmt::Display for Utf8PrefixComponent<'_> {
 /// IO error during iteration.
 ///
 /// If a directory entry is not UTF-8, an [`io::Error`] is returned with the
-/// [`ErrorKind`](io::ErrorKind) set to [`InvalidData`][io::ErrorKind::InvalidData] and the payload set to a [`FromPathBufError`].
+/// [`ErrorKind`](io::ErrorKind) set to [`InvalidData`][io::ErrorKind::InvalidData]
+/// and the payload set to a [`FromPathBufError`].
 #[derive(Debug)]
 pub struct ReadDirUtf8 {
     inner: fs::ReadDir,
