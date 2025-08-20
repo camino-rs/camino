@@ -131,7 +131,9 @@ impl Utf8PathBuf {
     /// Errors with the original [`PathBuf`] if it is not valid UTF-8.
     ///
     /// For a version that returns a type that implements [`std::error::Error`], use the
-    /// `TryFrom<PathBuf>` impl.
+    /// [`TryFrom<&PathBuf>`][tryfrom] impl.
+    ///
+    /// [tryfrom]: #impl-TryFrom<PathBuf>-for-Utf8PathBuf
     ///
     /// # Examples
     ///
@@ -612,7 +614,7 @@ impl Utf8Path {
     /// For a version that returns a type that implements [`std::error::Error`], use the
     /// [`TryFrom<&Path>`][tryfrom] impl.
     ///
-    /// [tryfrom]: #impl-TryFrom<%26'a+Path>-for-%26'a+Utf8Path
+    /// [tryfrom]: #impl-TryFrom<%26Path>-for-%26Utf8Path
     ///
     /// # Examples
     ///
@@ -2576,7 +2578,9 @@ impl<'a> TryFrom<&'a Path> for &'a Utf8Path {
 
 /// A possible error value while converting a [`PathBuf`] to a [`Utf8PathBuf`].
 ///
-/// Produced by the `TryFrom<PathBuf>` implementation for [`Utf8PathBuf`].
+/// Produced by the [`TryFrom<&PathBuf>`][tryfrom] implementation for [`Utf8PathBuf`].
+///
+/// [tryfrom]: Utf8PathBuf#impl-TryFrom<PathBuf>-for-Utf8PathBuf
 ///
 /// # Examples
 ///
@@ -2658,7 +2662,9 @@ impl error::Error for FromPathBufError {
 
 /// A possible error value while converting a [`Path`] to a [`Utf8Path`].
 ///
-/// Produced by the `TryFrom<&Path>` implementation for [`&Utf8Path`](Utf8Path).
+/// Produced by the [`TryFrom<&Path>`][tryfrom] implementation for [`&Utf8Path`](Utf8Path).
+///
+/// [tryfrom]: Utf8Path#impl-TryFrom<%26Path>-for-%26Utf8Path
 ///
 ///
 /// # Examples
