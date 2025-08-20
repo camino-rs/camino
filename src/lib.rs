@@ -162,6 +162,40 @@ impl Utf8PathBuf {
         }
     }
 
+    /// Creates a new [`Utf8PathBuf`] from an [`OsString`] containing valid UTF-8 characters.
+    ///
+    /// Errors with the original [`OsString`] if it is not valid UTF-8.
+    ///
+    /// For a version that returns a type that implements [`std::error::Error`], use the
+    /// `TryFrom<PathBuf>` impl.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    /// use std::ffi::OsStr;
+    /// use std::ffi::OsString;
+    /// use std::convert::TryFrom;
+    /// use std::str::FromStr;
+    /// # #[cfg(unix)]
+    /// use std::os::unix::ffi::OsStrExt;
+    ///
+    /// let unicode_string = OsString::from_str("/valid/unicode").unwrap();
+    /// Utf8PathBuf::from_os_string(unicode_string).expect("valid Unicode path succeeded");
+    ///
+    /// // Paths on Unix can be non-UTF-8.
+    /// # #[cfg(unix)]
+    /// let non_unicode_string = OsStr::from_bytes(b"\xFF\xFF\xFF").into();
+    /// # #[cfg(unix)]
+    /// Utf8PathBuf::from_os_string(non_unicode_string).expect_err("non-Unicode path failed");
+    /// ```
+    pub fn from_os_string(os_string: OsString) -> Result<Utf8PathBuf, OsString> {
+        match os_string.into_string() {
+            Ok(string) => Ok(Utf8PathBuf::from(string)),
+            Err(os_string) => Err(os_string),
+        }
+    }
+
     /// Converts a [`Utf8PathBuf`] to a [`PathBuf`].
     ///
     /// This is equivalent to the [`From<Utf8PathBuf> for PathBuf`][from] implementation,
@@ -640,6 +674,37 @@ impl Utf8Path {
     /// ```
     pub fn from_path(path: &Path) -> Option<&Utf8Path> {
         path.as_os_str().to_str().map(Utf8Path::new)
+    }
+
+    /// Converts an [`OsStr`] to a [`Utf8Path`].
+    ///
+    /// Returns [`None`] if the path is not valid UTF-8.
+    ///
+    /// For a version that returns a type that implements [`std::error::Error`], use the
+    /// [`TryFrom<&Path>`][tryfrom] impl.
+    ///
+    /// [tryfrom]: #impl-TryFrom<%26'a+Path>-for-%26'a+Utf8Path
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    /// use std::ffi::OsStr;
+    /// # #[cfg(unix)]
+    /// use std::os::unix::ffi::OsStrExt;
+    /// use std::path::Path;
+    ///
+    /// let unicode_string = OsStr::new("/valid/unicode");
+    /// Utf8Path::from_os_str(unicode_string).expect("valid Unicode string succeeded");
+    ///
+    /// // Paths on Unix can be non-UTF-8.
+    /// # #[cfg(unix)]
+    /// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+    /// # #[cfg(unix)]
+    /// assert!(Utf8Path::from_os_str(non_unicode_str).is_none(), "non-Unicode string failed");
+    /// ```
+    pub fn from_os_str(path: &OsStr) -> Option<&Utf8Path> {
+        path.to_str().map(Utf8Path::new)
     }
 
     /// Converts a [`Utf8Path`] to a [`Path`].
@@ -2554,10 +2619,13 @@ impl TryFrom<PathBuf> for Utf8PathBuf {
 }
 
 impl TryFrom<OsString> for Utf8PathBuf {
-    type Error = OsString;
+    type Error = FromOsStringError;
 
     fn try_from(os_string: OsString) -> Result<Utf8PathBuf, Self::Error> {
-        os_string.into_string().map(|s| Utf8PathBuf(s.into()))
+        Utf8PathBuf::from_os_string(os_string).map_err(|os_string| FromOsStringError {
+            os_string,
+            error: FromOsStrError,
+        })
     }
 }
 
@@ -2614,14 +2682,10 @@ impl<'a> TryFrom<&'a Path> for &'a Utf8Path {
 /// assert!(<&Utf8Path>::try_from(non_unicode_str).is_err(), "non-Unicode string path failed");
 /// ```
 impl<'a> TryFrom<&'a OsStr> for &'a Utf8Path {
-    type Error = &'a OsStr;
+    type Error = FromOsStrError;
 
-    fn try_from(path: &'a OsStr) -> Result<&'a Utf8Path, Self::Error> {
-        if let Some(s) = path.to_str() {
-            Ok(Utf8Path::new(s))
-        } else {
-            Err(path)
-        }
+    fn try_from(os_str: &'a OsStr) -> Result<&'a Utf8Path, Self::Error> {
+        Utf8Path::from_os_str(os_str).ok_or(FromOsStrError)
     }
 }
 
@@ -2761,6 +2825,144 @@ impl fmt::Display for FromPathError {
 }
 
 impl error::Error for FromPathError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
+}
+
+/// A possible error value while converting a [`OsString`] to a [`Utf8PathBuf`].
+///
+/// Produced by the `TryFrom<OsString>` implementation for [`Utf8PathBuf`].
+///
+/// # Examples
+///
+/// ```
+/// use camino::{Utf8PathBuf, FromOsStringError};
+/// use std::convert::{TryFrom, TryInto};
+/// use std::ffi::OsStr;
+/// use std::str::FromStr;
+/// use std::ffi::OsString;
+/// # #[cfg(unix)]
+/// use std::os::unix::ffi::OsStrExt;
+///
+/// let unicode_string = OsString::from_str("/valid/unicode").unwrap();
+/// let utf8_path_buf: Utf8PathBuf = unicode_string.try_into().expect("valid Unicode path succeeded");
+///
+/// // Paths on Unix can be non-UTF-8.
+/// # #[cfg(unix)]
+/// let non_unicode_string = OsStr::from_bytes(b"\xFF\xFF\xFF").to_owned();
+/// # #[cfg(unix)]
+/// let err: FromOsStringError = Utf8PathBuf::try_from(non_unicode_string.clone())
+///     .expect_err("non-Unicode path failed");
+/// # #[cfg(unix)]
+/// assert_eq!(err.as_os_str(), &non_unicode_string);
+/// # #[cfg(unix)]
+/// assert_eq!(err.into_os_string(), non_unicode_string);
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FromOsStringError {
+    os_string: OsString,
+    error: FromOsStrError,
+}
+
+impl FromOsStringError {
+    /// Returns the [`OsStr`] slice that was attempted to be converted to [`Utf8PathBuf`].
+    #[inline]
+    pub fn as_os_str(&self) -> &OsStr {
+        &self.os_string
+    }
+
+    /// Returns the [`OsString`] that was attempted to be converted to [`Utf8PathBuf`].
+    #[inline]
+    pub fn into_os_string(self) -> OsString {
+        self.os_string
+    }
+
+    /// Fetches a [`FromOsStrError`] for more about the conversion failure.
+    ///
+    /// At the moment this struct does not contain any additional information, but is provided for
+    /// completeness.
+    #[inline]
+    pub fn from_os_str_error(&self) -> FromOsStrError {
+        self.error
+    }
+
+    /// Converts self into a [`std::io::Error`] with kind
+    /// [`InvalidData`](io::ErrorKind::InvalidData).
+    ///
+    /// Many users of [`FromOsStringError`] will want to convert it into an [`io::Error`]. This is a
+    /// convenience method to do that.
+    pub fn into_io_error(self) -> io::Error {
+        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error` because we want
+        // to ensure the user actually desires that conversion.
+        io::Error::new(io::ErrorKind::InvalidData, self)
+    }
+}
+
+impl fmt::Display for FromOsStringError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "OsString contains invalid UTF-8: {}",
+            // self.os_string.display() // this item is stable since `1.87.0`
+            PathBuf::from(&self.os_string).display() // msrv hack
+        )
+    }
+}
+
+impl error::Error for FromOsStringError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        Some(&self.error)
+    }
+}
+
+/// A possible error value while converting a [`OsStr`] to a [`Utf8Path`].
+///
+/// Produced by the `TryFrom<&OsStr>` implementation for [`&Utf8Path`](Utf8Path).
+///
+///
+/// # Examples
+///
+/// ```
+/// use camino::{Utf8Path, FromOsStrError};
+/// use std::convert::{TryFrom, TryInto};
+/// use std::ffi::OsStr;
+/// # #[cfg(unix)]
+/// use std::os::unix::ffi::OsStrExt;
+///
+/// let unicode_str = OsStr::new("/valid/unicode");
+/// let utf8_path: &Utf8Path = unicode_str.try_into().expect("valid Unicode path succeeded");
+///
+/// // Paths on Unix can be non-UTF-8.
+/// # #[cfg(unix)]
+/// let non_unicode_str = OsStr::from_bytes(b"\xFF\xFF\xFF");
+/// # #[cfg(unix)]
+/// let err: FromOsStrError = <&Utf8Path>::try_from(non_unicode_str)
+///     .expect_err("non-Unicode path failed");
+/// ```
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct FromOsStrError;
+
+impl FromOsStrError {
+    /// Converts self into a [`std::io::Error`] with kind
+    /// [`InvalidData`](io::ErrorKind::InvalidData).
+    ///
+    /// Many users of [`FromOsStrError`] will want to convert it into an [`io::Error`]. This is a
+    /// convenience method to do that.
+    pub fn into_io_error(self) -> io::Error {
+        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error` because we want
+        // to ensure the user actually desires that conversion.
+        io::Error::new(io::ErrorKind::InvalidData, self)
+    }
+}
+
+impl fmt::Display for FromOsStrError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "OsStr contains invalid UTF-8")
+    }
+}
+
+impl error::Error for FromOsStrError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         None
     }
