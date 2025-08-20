@@ -130,8 +130,8 @@ impl Utf8PathBuf {
     ///
     /// Errors with the original [`PathBuf`] if it is not valid UTF-8.
     ///
-    /// For a version that returns a type that implements [`std::error::Error`], use the
-    /// [`TryFrom<&PathBuf>`][tryfrom] impl.
+    /// For a version that returns a type that implements [`std::error::Error`],
+    /// see [`TryFrom<&PathBuf>`][tryfrom].
     ///
     /// [tryfrom]: #impl-TryFrom<PathBuf>-for-Utf8PathBuf
     ///
@@ -162,10 +162,12 @@ impl Utf8PathBuf {
         }
     }
 
-    /// Converts a `Utf8PathBuf` to a [`PathBuf`].
+    /// Converts a [`Utf8PathBuf`] to a [`PathBuf`].
     ///
-    /// This is equivalent to the `From<Utf8PathBuf> for PathBuf` impl, but may aid in type
-    /// inference.
+    /// This is equivalent to the [`From<Utf8PathBuf> for PathBuf`][from] implementation,
+    /// but may aid in type inference.
+    ///
+    /// [from]: #impl-From<Utf8PathBuf>-for-PathBuf
     ///
     /// # Examples
     ///
@@ -611,8 +613,8 @@ impl Utf8Path {
     ///
     /// Returns [`None`] if the path is not valid UTF-8.
     ///
-    /// For a version that returns a type that implements [`std::error::Error`], use the
-    /// [`TryFrom<&Path>`][tryfrom] impl.
+    /// For a version that returns a type that implements [`std::error::Error`],
+    /// see [`TryFrom<&Path>`][tryfrom].
     ///
     /// [tryfrom]: #impl-TryFrom<%26Path>-for-%26Utf8Path
     ///
@@ -640,9 +642,12 @@ impl Utf8Path {
         path.as_os_str().to_str().map(Utf8Path::new)
     }
 
-    /// Converts a `Utf8Path` to a [`Path`].
+    /// Converts a [`Utf8Path`] to a [`Path`].
     ///
-    /// This is equivalent to the `AsRef<&Path> for &Utf8Path` impl, but may aid in type inference.
+    /// This is equivalent to the [`AsRef<Path> for Utf8PathBuf`][asref] implementation,
+    /// but may aid in type inference.
+    ///
+    /// [asref]: Utf8PathBuf#impl-AsRef<Path>-for-Utf8PathBuf
     ///
     /// # Examples
     ///
@@ -665,8 +670,8 @@ impl Utf8Path {
 
     /// Yields the underlying [`str`] slice.
     ///
-    /// Unlike [`Path::to_str`], this always returns a slice because the contents of a [`Utf8Path`]
-    /// are guaranteed to be valid UTF-8.
+    /// Unlike [`Path::to_str`], this always returns a slice because the contents
+    /// of a [`Utf8Path`] are guaranteed to be valid UTF-8.
     ///
     /// # Examples
     ///
