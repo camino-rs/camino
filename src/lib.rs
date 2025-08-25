@@ -172,6 +172,7 @@ impl Utf8PathBuf {
     /// # Examples
     ///
     /// ```
+    /// # #![cfg(osstring_from_str)]
     /// use camino::Utf8PathBuf;
     /// use std::ffi::OsStr;
     /// use std::ffi::OsString;
@@ -2837,6 +2838,7 @@ impl error::Error for FromPathError {
 /// # Examples
 ///
 /// ```
+/// # #![cfg(osstring_from_str)]
 /// use camino::{Utf8PathBuf, FromOsStringError};
 /// use std::convert::{TryFrom, TryInto};
 /// use std::ffi::OsStr;
