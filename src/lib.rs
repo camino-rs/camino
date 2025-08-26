@@ -167,7 +167,9 @@ impl Utf8PathBuf {
     /// Errors with the original [`OsString`] if it is not valid UTF-8.
     ///
     /// For a version that returns a type that implements [`std::error::Error`], use the
-    /// `TryFrom<PathBuf>` impl.
+    /// [`TryFrom<OsString>`] impl.
+    ///
+    /// [`TryFrom<OsString>`]: #impl-TryFrom<OsString>-for-Utf8PathBuf
     ///
     /// # Examples
     ///
@@ -683,9 +685,9 @@ impl Utf8Path {
     /// Returns [`None`] if the path is not valid UTF-8.
     ///
     /// For a version that returns a type that implements [`std::error::Error`], use the
-    /// [`TryFrom<&Path>`][tryfrom] impl.
+    /// [`TryFrom<&OsStr>`][tryfrom] impl.
     ///
-    /// [tryfrom]: #impl-TryFrom<%26'a+Path>-for-%26'a+Utf8Path
+    /// [tryfrom]: #impl-TryFrom<%26OsStr>-for-%26Utf8Path
     ///
     /// # Examples
     ///
