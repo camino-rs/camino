@@ -170,6 +170,7 @@ Thanks to [BenjaminBrienen](https://github.com/BenjaminBrienen) for your first c
 
 Initial release.
 
+[1.1.12]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.12
 [1.1.11]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.11
 [1.1.10]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.10
 [1.1.9]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.9
