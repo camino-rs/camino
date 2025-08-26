@@ -172,7 +172,7 @@ impl Utf8PathBuf {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg(osstring_from_str)]
+    /// # #[cfg(osstring_from_str)] {
     /// use camino::Utf8PathBuf;
     /// use std::ffi::OsStr;
     /// use std::ffi::OsString;
@@ -189,6 +189,7 @@ impl Utf8PathBuf {
     /// let non_unicode_string = OsStr::from_bytes(b"\xFF\xFF\xFF").into();
     /// # #[cfg(unix)]
     /// Utf8PathBuf::from_os_string(non_unicode_string).expect_err("non-Unicode path failed");
+    /// # }
     /// ```
     pub fn from_os_string(os_string: OsString) -> Result<Utf8PathBuf, OsString> {
         match os_string.into_string() {
@@ -2838,7 +2839,7 @@ impl error::Error for FromPathError {
 /// # Examples
 ///
 /// ```
-/// # #![cfg(osstring_from_str)]
+/// # #[cfg(osstring_from_str)] {
 /// use camino::{Utf8PathBuf, FromOsStringError};
 /// use std::convert::{TryFrom, TryInto};
 /// use std::ffi::OsStr;
@@ -2861,6 +2862,7 @@ impl error::Error for FromPathError {
 /// assert_eq!(err.as_os_str(), &non_unicode_string);
 /// # #[cfg(unix)]
 /// assert_eq!(err.into_os_string(), non_unicode_string);
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FromOsStringError {
