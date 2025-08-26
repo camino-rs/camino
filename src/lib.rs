@@ -2814,7 +2814,7 @@ impl FromPathError {
     /// Many users of [`FromPathError`] will want to convert it into an [`io::Error`]. This is a
     /// convenience method to do that.
     pub fn into_io_error(self) -> io::Error {
-        // NOTE: we don't currently implement `From<FromPathBufError> for io::Error` because we want
+        // NOTE: we don't currently implement `From<FromPathError> for io::Error` because we want
         // to ensure the user actually desires that conversion.
         io::Error::new(io::ErrorKind::InvalidData, self)
     }
@@ -2955,7 +2955,7 @@ impl FromOsStrError {
     /// Many users of [`FromOsStrError`] will want to convert it into an [`io::Error`]. This is a
     /// convenience method to do that.
     pub fn into_io_error(self) -> io::Error {
-        // NOTE: we don't currently implement `From<FromOsStringError> for io::Error`
+        // NOTE: we don't currently implement `From<FromOsStrError> for io::Error`
         // because we want to ensure the user actually desires that conversion.
         io::Error::new(io::ErrorKind::InvalidData, self)
     }
