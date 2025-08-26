@@ -33,6 +33,9 @@ fn main() {
     if compiler.minor >= 44 {
         println!("cargo:rustc-cfg=path_buf_capacity");
     }
+    if compiler.minor >= 45 {
+        println!("cargo:rustc-cfg=osstring_from_str");
+    }
     if compiler.minor >= 56 {
         println!("cargo:rustc-cfg=shrink_to");
     }
