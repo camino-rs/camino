@@ -2626,7 +2626,7 @@ impl TryFrom<OsString> for Utf8PathBuf {
     fn try_from(os_string: OsString) -> Result<Utf8PathBuf, Self::Error> {
         Utf8PathBuf::from_os_string(os_string).map_err(|os_string| FromOsStringError {
             os_string,
-            error: FromOsStrError,
+            error: FromOsStrError(()),
         })
     }
 }
@@ -2687,7 +2687,7 @@ impl<'a> TryFrom<&'a OsStr> for &'a Utf8Path {
     type Error = FromOsStrError;
 
     fn try_from(os_str: &'a OsStr) -> Result<&'a Utf8Path, Self::Error> {
-        Utf8Path::from_os_str(os_str).ok_or(FromOsStrError)
+        Utf8Path::from_os_str(os_str).ok_or(FromOsStrError(()))
     }
 }
 
@@ -2946,7 +2946,7 @@ impl error::Error for FromOsStringError {
 ///     .expect_err("non-Unicode path failed");
 /// ```
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct FromOsStrError;
+pub struct FromOsStrError(());
 
 impl FromOsStrError {
     /// Converts self into a [`std::io::Error`] with kind
