@@ -105,7 +105,7 @@ dependencies:
 
 ## Rust version support
 
-The minimum supported Rust version (MSRV) for `camino` with default features is **1.34**. This project is tested in CI
+The minimum supported Rust version (MSRV) for `camino` with default features is **1.61**. This project is tested in CI
 against the latest stable version of Rust and the MSRV.
 
 - _Stable APIs_ added in later Rust versions are supported either through conditional compilation in `build.rs`, or through backfills that also work on older versions.
