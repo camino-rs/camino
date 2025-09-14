@@ -8,7 +8,7 @@
 //!   improve compile times. It's also very straightforward to implement.
 
 use crate::{Utf8Path, Utf8PathBuf};
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+use serde_core::{Deserialize, Deserializer, Serialize, Serializer, de};
 use std::fmt;
 
 struct Utf8PathBufVisitor;
@@ -133,8 +133,8 @@ impl<'de> Deserialize<'de> for Box<Utf8Path> {
 mod tests {
     use super::*;
     use crate::Utf8PathBuf;
+    use serde::{Deserialize, Serialize};
     use serde_bytes::ByteBuf;
-    use serde_derive::{Deserialize, Serialize};
 
     #[test]
     fn valid_utf8() {
