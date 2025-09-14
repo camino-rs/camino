@@ -229,8 +229,6 @@ impl Utf8PathBuf {
     /// Creates a new [`Utf8PathBuf`] with a given capacity used to create the internal [`PathBuf`].
     /// See [`with_capacity`] defined on [`PathBuf`].
     ///
-    /// *Requires Rust 1.44 or newer.*
-    ///
     /// # Examples
     ///
     /// ```
@@ -246,7 +244,6 @@ impl Utf8PathBuf {
     /// ```
     ///
     /// [`with_capacity`]: PathBuf::with_capacity
-    #[cfg(path_buf_capacity)]
     #[allow(clippy::incompatible_msrv)]
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Utf8PathBuf {
@@ -452,10 +449,7 @@ impl Utf8PathBuf {
 
     /// Invokes [`capacity`] on the underlying instance of [`PathBuf`].
     ///
-    /// *Requires Rust 1.44 or newer.*
-    ///
     /// [`capacity`]: PathBuf::capacity
-    #[cfg(path_buf_capacity)]
     #[allow(clippy::incompatible_msrv)]
     #[must_use]
     pub fn capacity(&self) -> usize {
@@ -464,10 +458,7 @@ impl Utf8PathBuf {
 
     /// Invokes [`clear`] on the underlying instance of [`PathBuf`].
     ///
-    /// *Requires Rust 1.44 or newer.*
-    ///
     /// [`clear`]: PathBuf::clear
-    #[cfg(path_buf_capacity)]
     #[allow(clippy::incompatible_msrv)]
     pub fn clear(&mut self) {
         self.0.clear()
@@ -475,10 +466,7 @@ impl Utf8PathBuf {
 
     /// Invokes [`reserve`] on the underlying instance of [`PathBuf`].
     ///
-    /// *Requires Rust 1.44 or newer.*
-    ///
     /// [`reserve`]: PathBuf::reserve
-    #[cfg(path_buf_capacity)]
     #[allow(clippy::incompatible_msrv)]
     pub fn reserve(&mut self, additional: usize) {
         self.0.reserve(additional)
@@ -501,10 +489,7 @@ impl Utf8PathBuf {
 
     /// Invokes [`reserve_exact`] on the underlying instance of [`PathBuf`].
     ///
-    /// *Requires Rust 1.44 or newer.*
-    ///
     /// [`reserve_exact`]: PathBuf::reserve_exact
-    #[cfg(path_buf_capacity)]
     #[allow(clippy::incompatible_msrv)]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.0.reserve_exact(additional)
@@ -527,10 +512,7 @@ impl Utf8PathBuf {
 
     /// Invokes [`shrink_to_fit`] on the underlying instance of [`PathBuf`].
     ///
-    /// *Requires Rust 1.44 or newer.*
-    ///
     /// [`shrink_to_fit`]: PathBuf::shrink_to_fit
-    #[cfg(path_buf_capacity)]
     #[allow(clippy::incompatible_msrv)]
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit()
@@ -538,10 +520,7 @@ impl Utf8PathBuf {
 
     /// Invokes [`shrink_to`] on the underlying instance of [`PathBuf`].
     ///
-    /// *Requires Rust 1.56 or newer.*
-    ///
     /// [`shrink_to`]: PathBuf::shrink_to
-    #[cfg(shrink_to)]
     #[allow(clippy::incompatible_msrv)]
     #[inline]
     pub fn shrink_to(&mut self, min_capacity: usize) {
@@ -1482,17 +1461,10 @@ impl Utf8Path {
     /// [`exists()`]: Self::exists
     #[inline]
     pub fn try_exists(&self) -> io::Result<bool> {
-        // Note: this block is written this way rather than with a pattern guard to appease Rust
-        // 1.34.
         match fs::metadata(self) {
             Ok(_) => Ok(true),
-            Err(error) => {
-                if error.kind() == io::ErrorKind::NotFound {
-                    Ok(false)
-                } else {
-                    Err(error)
-                }
-            }
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(false),
+            Err(error) => Err(error),
         }
     }
 
@@ -2116,10 +2088,7 @@ impl Utf8Prefix<'_> {
     #[must_use]
     pub fn is_verbatim(&self) -> bool {
         use Utf8Prefix::*;
-        match self {
-            Verbatim(_) | VerbatimDisk(_) | VerbatimUNC(..) => true,
-            _ => false,
-        }
+        matches!(self, Verbatim(_) | VerbatimDisk(_) | VerbatimUNC(..))
     }
 }
 

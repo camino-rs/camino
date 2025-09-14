@@ -15,8 +15,6 @@ fn main() {
     // Required by Rust 1.79+.
     println!("cargo:rustc-check-cfg=cfg(doc_cfg)");
     println!("cargo:rustc-check-cfg=cfg(path_buf_deref_mut)");
-    println!("cargo:rustc-check-cfg=cfg(path_buf_capacity)");
-    println!("cargo:rustc-check-cfg=cfg(shrink_to)");
     println!("cargo:rustc-check-cfg=cfg(try_reserve_2)");
     println!("cargo:rustc-check-cfg=cfg(os_str_bytes)");
     println!("cargo:rustc-check-cfg=cfg(os_string_pathbuf_leak)");
@@ -30,17 +28,7 @@ fn main() {
     // NOTE:
     // Adding a new cfg gated by Rust version MUST be accompanied by an addition to the matrix in
     // .github/workflows/ci.yml.
-    if compiler.minor >= 44 {
-        println!("cargo:rustc-cfg=path_buf_capacity");
-    }
-    if compiler.minor >= 45 {
-        println!("cargo:rustc-cfg=osstring_from_str");
-    }
-    if compiler.minor >= 56 {
-        println!("cargo:rustc-cfg=shrink_to");
-    }
-    // NOTE: the below checks use == rather than `matches!`. This is because `matches!` isn't stable
-    // on Rust 1.34.
+    //
     // try_reserve_2 was added in a 1.63 nightly.
     if (compiler.minor >= 63
         && (compiler.channel == ReleaseChannel::Stable || compiler.channel == ReleaseChannel::Beta))
