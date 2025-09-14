@@ -3,6 +3,14 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-09-14
+
+### Changed
+
+- MSRV updated to Rust 1.61 to support the switch to `serde_core`.
+- camino now depends on `serde_core` rather than `serde`. This allows camino's compilation to be parallelized with `serde_derive`.
+- `serde` and `proptest` are no longer available as features. This is technically a breaking change, but these features were already no-ops. Instead, use `serde1` and `proptest1` respectively.
+
 ## [1.1.12] - 2025-08-26
 
 ### Added
@@ -170,6 +178,7 @@ Thanks to [BenjaminBrienen](https://github.com/BenjaminBrienen) for your first c
 
 Initial release.
 
+[1.2.0]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.0
 [1.1.12]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.12
 [1.1.11]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.11
 [1.1.10]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.10

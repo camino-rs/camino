@@ -278,6 +278,8 @@ impl Utf8PathBuf {
     /// capacity, call [`into_boxed_path`], and then [`Box::leak`] instead.
     /// However, keep in mind that trimming the capacity may result in a reallocation and copy.
     ///
+    /// *Requires Rust 1.89 or newer.*
+    ///
     /// [`into_boxed_path`]: Self::into_boxed_path
     #[cfg(os_string_pathbuf_leak)]
     #[allow(clippy::incompatible_msrv)]

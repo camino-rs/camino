@@ -20,8 +20,7 @@ The `std::path` types are not guaranteed to be valid UTF-8. This is the right de
 since it must be as general as possible. However, on all platforms, non-Unicode paths are vanishingly uncommon for a
 number of reasons:
 
-- Unicode won. There are still some legacy codebases that store paths in encodings like [Shift JIS], but most
-  have been converted to Unicode at this point.
+- Unicode is now the dominant encoding for file names. There are still some legacy codebases that store paths in encodings like [Shift JIS], but most have been converted to Unicode at this point.
 - Unicode is the common subset of supported paths across Windows and Unix platforms. (On Windows, Rust stores paths
   as [an extension to UTF-8](https://simonsapin.github.io/wtf-8/), and converts them to UTF-16 at Win32
   API boundaries.)
