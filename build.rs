@@ -58,21 +58,6 @@ fn main() {
     {
         println!("cargo:rustc-cfg=os_string_pathbuf_leak");
     }
-
-    // Catch situations where the actual features aren't enabled. Currently, they're only shown with
-    // `-vv` output, but maybe that will be noticed.
-    #[cfg(all(feature = "proptest", not(feature = "proptest1")))]
-    {
-        println!(
-            "cargo:warning=proptest feature is enabled, but proptest1 isn't -- this won't do anything"
-        );
-    }
-    #[cfg(all(feature = "serde", not(feature = "serde1")))]
-    {
-        println!(
-            "cargo:warning=serde feature is enabled, but serde1 isn't -- this won't do anything"
-        );
-    }
 }
 
 struct Compiler {
