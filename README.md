@@ -100,8 +100,6 @@ dependencies:
 - `proptest1` adds [proptest](https://altsysrq.github.io/proptest-book/) [`Arbitrary`]
   implementations for [`Utf8PathBuf`] and `Box<Utf8Path>`.
 
-> NOTE: Enabling the `serde` or `proptest` features will not do anything. You must enable the `serde1` and `proptest1` features, respectively.
-
 ## Rust version support
 
 The minimum supported Rust version (MSRV) for `camino` with default features is **1.61**. This project is tested in CI
