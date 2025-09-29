@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 #![warn(missing_docs)]
-#![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
+#![cfg_attr(doc_cfg, feature(doc_cfg))]
 
 //! UTF-8 encoded paths.
 //!
