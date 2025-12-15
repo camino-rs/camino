@@ -58,6 +58,7 @@ jobs:
           - 1.74
           - 1.79
           - 1.89
+          - 1.91
           - stable
       fail-fast: false
     env:

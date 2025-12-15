@@ -114,6 +114,8 @@ pub struct Utf8PathBuf(PathBuf);
 impl Utf8PathBuf {
     /// Allocates an empty [`Utf8PathBuf`].
     ///
+    /// *On Rust 1.91 or newer, this is a `const fn`.*
+    ///
     /// # Examples
     ///
     /// ```
@@ -122,6 +124,23 @@ impl Utf8PathBuf {
     /// let path = Utf8PathBuf::new();
     /// ```
     #[must_use]
+    #[cfg(pathbuf_const_new)]
+    #[expect(clippy::incompatible_msrv)]
+    pub const fn new() -> Utf8PathBuf {
+        Utf8PathBuf(PathBuf::new())
+    }
+
+    /// Allocates an empty [`Utf8PathBuf`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8PathBuf;
+    ///
+    /// let path = Utf8PathBuf::new();
+    /// ```
+    #[must_use]
+    #[cfg(not(pathbuf_const_new))]
     pub fn new() -> Utf8PathBuf {
         Utf8PathBuf(PathBuf::new())
     }
@@ -402,6 +421,45 @@ impl Utf8PathBuf {
     /// ```
     pub fn set_extension(&mut self, extension: impl AsRef<str>) -> bool {
         self.0.set_extension(extension.as_ref())
+    }
+
+    /// Appends to [`self.extension`] with `extension`.
+    ///
+    /// Returns `false` and does nothing if [`self.file_name`] is [`None`],
+    /// returns `true` and updates the extension otherwise.
+    ///
+    /// *Requires Rust 1.91 or newer.*
+    ///
+    /// # Panics
+    ///
+    /// Panics if the passed extension contains a path separator (see
+    /// [`is_separator`](std::path::is_separator)).
+    ///
+    /// # Caveats
+    ///
+    /// The appended `extension` may contain dots and will be used in its entirety,
+    /// but only the part after the final dot will be reflected in [`self.extension`].
+    ///
+    /// [`self.file_name`]: Utf8Path::file_name
+    /// [`self.extension`]: Utf8Path::extension
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let mut p = Utf8PathBuf::from("/feel/the");
+    ///
+    /// p.add_extension("formatted");
+    /// assert_eq!(Utf8Path::new("/feel/the.formatted"), p.as_path());
+    ///
+    /// p.add_extension("dark.side");
+    /// assert_eq!(Utf8Path::new("/feel/the.formatted.dark.side"), p.as_path());
+    /// ```
+    #[cfg(path_add_extension)]
+    #[expect(clippy::incompatible_msrv)]
+    pub fn add_extension<S: AsRef<str>>(&mut self, extension: S) -> bool {
+        self.0.add_extension(extension.as_ref())
     }
 
     /// Consumes the [`Utf8PathBuf`], yielding its internal [`String`] storage.
@@ -1042,6 +1100,39 @@ impl Utf8Path {
         })
     }
 
+    /// Extracts the prefix of [`self.file_name`].
+    ///
+    /// The prefix is:
+    ///
+    /// * [`None`], if there is no file name;
+    /// * The entire file name if there is no embedded `.`;
+    /// * The portion of the file name before the first non-beginning `.`;
+    /// * The entire file name if the file name begins with `.` and has no other `.`s within;
+    /// * The portion of the file name before the second `.` if the file name begins with `.`
+    ///
+    /// *Requires Rust 1.91 or newer.*
+    ///
+    /// [`self.file_name`]: Utf8Path::file_name
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::Utf8Path;
+    ///
+    /// assert_eq!("foo", Utf8Path::new("foo.rs").file_prefix().unwrap());
+    /// assert_eq!("foo", Utf8Path::new("foo.tar.gz").file_prefix().unwrap());
+    /// ```
+    #[cfg(path_add_extension)]
+    #[expect(clippy::incompatible_msrv)]
+    #[inline]
+    #[must_use]
+    pub fn file_prefix(&self) -> Option<&str> {
+        self.0.file_prefix().map(|s| {
+            // SAFETY: self is valid UTF-8, so file_prefix is valid UTF-8 as well
+            unsafe { str_assume_utf8(s) }
+        })
+    }
+
     /// Extracts the extension of [`self.file_name`], if possible.
     ///
     /// The extension is:
@@ -1146,6 +1237,31 @@ impl Utf8Path {
     #[inline]
     pub fn with_extension(&self, extension: impl AsRef<str>) -> Utf8PathBuf {
         Utf8PathBuf(self.0.with_extension(extension.as_ref()))
+    }
+
+    /// Creates an owned [`Utf8PathBuf`] like `self` but with the extension added.
+    ///
+    /// See [`Utf8PathBuf::add_extension`] for more details.
+    ///
+    /// *Requires Rust 1.91 or newer.*
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    ///
+    /// let path = Utf8Path::new("foo.rs");
+    /// assert_eq!(path.with_added_extension("txt"), Utf8PathBuf::from("foo.rs.txt"));
+    ///
+    /// let path = Utf8Path::new("foo.tar.gz");
+    /// assert_eq!(path.with_added_extension(""), Utf8PathBuf::from("foo.tar.gz"));
+    /// assert_eq!(path.with_added_extension("xz"), Utf8PathBuf::from("foo.tar.gz.xz"));
+    /// ```
+    #[cfg(path_add_extension)]
+    #[expect(clippy::incompatible_msrv)]
+    #[inline]
+    pub fn with_added_extension<S: AsRef<str>>(&self, extension: S) -> Utf8PathBuf {
+        Utf8PathBuf(self.0.with_added_extension(extension.as_ref()))
     }
 
     /// Produces an iterator over the [`Utf8Component`]s of the path.
