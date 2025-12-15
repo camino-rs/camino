@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Simulate a process fork."><title>fork in rusty_fork - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rusty_fork" data-themes="" data-resource-suffix="" data-rustdoc-version="1.92.0 (ded5c06cf 2025-12-08)" data-channel="1.92.0" data-search-js="search-d69d8955.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../static.files/storage-e2aeef58.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-ce535bd0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">fork</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rusty_fork/index.html">rusty_<wbr>fork</a><span class="version">0.3.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">fork</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#panics" title="Panics">Panics</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate rusty_<wbr>fork</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">rusty_fork</a></div><h1>Function <span class="fn">fork</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rusty_fork/fork.rs.html#82-109">Source</a> </span></div><pre class="rust item-decl"><code>pub fn fork&lt;ID, MODIFIER, PARENT, CHILD, R&gt;(
+    test_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.92.0/std/primitive.str.html">str</a>,
+    fork_id: ID,
+    process_modifier: MODIFIER,
+    in_parent: PARENT,
+    in_child: CHILD,
+) -&gt; <a class="type" href="type.Result.html" title="type rusty_fork::Result">Result</a>&lt;R&gt;<div class="where">where
+    ID: <a class="trait" href="https://doc.rust-lang.org/1.92.0/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a>,
+    MODIFIER: <a class="trait" href="https://doc.rust-lang.org/1.92.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;mut <a class="struct" href="https://doc.rust-lang.org/1.92.0/std/process/struct.Command.html" title="struct std::process::Command">Command</a>),
+    PARENT: <a class="trait" href="https://doc.rust-lang.org/1.92.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;mut <a class="struct" href="struct.ChildWrapper.html" title="struct rusty_fork::ChildWrapper">ChildWrapper</a>, &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.92.0/std/fs/struct.File.html" title="struct std::fs::File">File</a>) -&gt; R,
+    CHILD: <a class="trait" href="https://doc.rust-lang.org/1.92.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(),</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Simulate a process fork.</p>
+<p>The function documentation here only lists information unique to calling it
+directly; please see the crate documentation for more details on how the
+forking process works.</p>
+<p>Since this is not a true process fork, the calling code must be structured
+to ensure that the child process, upon starting from the same entry point,
+also reaches this same <code>fork()</code> call. Recursive forks are supported; the
+child branch is taken from all child processes of the fork even if it is
+not directly the child of a particular branch. However, encountering the
+same fork point more than once in a single execution sequence of a child
+process is not (e.g., putting this call in a recursive function) and
+results in unspecified behaviour.</p>
+<p>The child’s output is buffered into an anonymous temporary file. Before
+this call returns, this output is copied to the parent’s standard output
+(passing through the redirect mechanism Rust test uses).</p>
+<p><code>test_name</code> must exactly match the full path of the test function being
+run.</p>
+<p><code>fork_id</code> is a unique identifier identifying this particular fork location.
+This <em>must</em> be stable across processes of the same executable; pointers are
+not suitable stable, and string constants may not be suitably unique. The
+<a href="macro.rusty_fork_id.html"><code>rusty_fork_id!()</code></a> macro is the recommended way
+to supply this parameter.</p>
+<p>If this is the parent process, <code>in_parent</code> is invoked, and the return value
+becomes the return value from this function. The callback is passed a
+handle to the file which receives the child’s output. If is the callee’s
+responsibility to wait for the child to exit. If this is the child process,
+<code>in_child</code> is invoked, and when the callback returns, the child process
+exits.</p>
+<p>If <code>in_parent</code> returns or panics before the child process has terminated,
+the child process is killed.</p>
+<p>If <code>in_child</code> panics, the child process exits with a failure code
+immediately rather than let the panic propagate out of the <code>fork()</code> call.</p>
+<p><code>process_modifier</code> is invoked on the <code>std::process::Command</code> immediately
+before spawning the new process. The callee may modify the process
+parameters if desired, but should not do anything that would modify or
+remove any environment variables beginning with <code>RUSTY_FORK_</code>.</p>
+<h3 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h3>
+<p>Panics if the environment indicates that there are already at least 16
+levels of fork nesting.</p>
+<p>Panics if <code>std::env::current_exe()</code> fails determine the path to the current
+executable.</p>
+<p>Panics if any argument to the current process is not valid UTF-8.</p>
+</div></details></section></div></main></body></html>
