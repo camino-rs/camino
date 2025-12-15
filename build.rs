@@ -19,6 +19,8 @@ fn main() {
     println!("cargo:rustc-check-cfg=cfg(os_str_bytes)");
     println!("cargo:rustc-check-cfg=cfg(os_string_pathbuf_leak)");
     println!("cargo:rustc-check-cfg=cfg(absolute_path)");
+    println!("cargo:rustc-check-cfg=cfg(path_add_extension)");
+    println!("cargo:rustc-check-cfg=cfg(pathbuf_const_new)");
 
     let compiler = match rustc_version() {
         Some(compiler) => compiler,
@@ -57,6 +59,16 @@ fn main() {
     if (compiler.minor >= 89 && compiler.channel == ReleaseChannel::Stable) || compiler.minor >= 90
     {
         println!("cargo:rustc-cfg=os_string_pathbuf_leak");
+    }
+    // path_add_extension was added in 1.91.
+    if (compiler.minor >= 91 && compiler.channel == ReleaseChannel::Stable) || compiler.minor >= 92
+    {
+        println!("cargo:rustc-cfg=path_add_extension");
+    }
+    // pathbuf_const_new was added in 1.91.
+    if (compiler.minor >= 91 && compiler.channel == ReleaseChannel::Stable) || compiler.minor >= 92
+    {
+        println!("cargo:rustc-cfg=pathbuf_const_new");
     }
 }
 
