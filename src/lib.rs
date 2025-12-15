@@ -433,7 +433,7 @@ impl Utf8PathBuf {
     /// # Panics
     ///
     /// Panics if the passed extension contains a path separator (see
-    /// [`is_separator`](std::path::is_separator)).
+    /// [`is_separator`]).
     ///
     /// # Caveats
     ///

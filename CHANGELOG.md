@@ -3,6 +3,17 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-12-14
+
+### Added
+
+On Rust 1.91 and above:
+
+- `Utf8PathBuf::add_extension`
+- `Utf8Path::file_prefix`
+- `Utf8Path::with_added_extension`
+- `Utf8PathBuf::new` is a const fn.
+
 ## [1.2.1] - 2025-09-29
 
 ### Fixed
@@ -184,6 +195,7 @@ Thanks to [BenjaminBrienen](https://github.com/BenjaminBrienen) for your first c
 
 Initial release.
 
+[1.2.2]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.2
 [1.2.1]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.1
 [1.2.0]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.0
 [1.1.12]: https://github.com/camino-rs/camino/releases/tag/camino-1.1.12
