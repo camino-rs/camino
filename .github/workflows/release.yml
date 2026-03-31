@@ -4,21 +4,27 @@ name: Publish release
 on:
   push:
     tags:
-      - '*'
+      - "camino-[0-9]*"
 
 jobs:
   create-release:
     if: github.repository_owner == 'camino-rs'
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write     # Required for OIDC token exchange
+      contents: write     # Required for creating releases
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - run: cargo publish
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
       - uses: taiki-e/create-gh-release-action@v1
         with:
           changelog: CHANGELOG.md
