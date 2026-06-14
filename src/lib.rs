@@ -3207,10 +3207,9 @@ impl PartialEq for Utf8Path {
 impl Eq for Utf8Path {}
 
 impl Hash for Utf8Path {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        for component in self.components() {
-            component.hash(state)
-        }
+        self.0.hash(state)
     }
 }
 
