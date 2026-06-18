@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## Unreleased - ReleaseDate
 
+### Performance improvements
+
+- `Utf8Path::hash` now delegates to `std::path::Path::hash`, resulting in hashing requiring ~2x fewer instructions. Thanks [stormslowly](https://github.com/stormslowly) for your first contribution!
+
 ## [1.2.2] - 2025-12-14
 
 ### Added
