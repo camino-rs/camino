@@ -38,6 +38,26 @@ fn test_owned_into() {
     all_into!(Utf8PathBuf, utf8_path_buf);
 }
 
+#[test]
+fn test_boxed_into() {
+    // Exercise Utf8PathBuf -> Box<Utf8Path> (mostly intended for Miri).
+    let utf8_path_buf = Utf8PathBuf::from("test/path");
+    // This exercises Clone.
+    let boxed: Box<Utf8Path> = utf8_path_buf.clone().into();
+
+    assert_eq!(
+        &*boxed.clone().into_std_boxed_path(),
+        Path::new("test/path")
+    );
+    let from_boxed: Box<Path> = boxed.clone().into();
+    assert_eq!(&*from_boxed, Path::new("test/path"));
+
+    // Box<Utf8Path> -> Utf8PathBuf.
+    assert_eq!(boxed.clone().into_path_buf(), utf8_path_buf);
+    let from_boxed: Utf8PathBuf = boxed.into();
+    assert_eq!(from_boxed, utf8_path_buf);
+}
+
 fn test_into<T, U>(orig: T)
 where
     T: Into<U>,

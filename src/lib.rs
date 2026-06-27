@@ -1687,12 +1687,28 @@ impl Utf8Path {
     }
 
     /// Converts a [`Box<Utf8Path>`] into a [`Box<Path>`] without copying or allocating.
+    ///
+    /// This is equivalent to the [`From<Box<Utf8Path>> for Box<Path>`][from] implementation,
+    /// but may aid in type inference.
+    ///
+    /// [from]: #impl-From<Box<Utf8Path>>-for-Box<Path>
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use camino::{Utf8Path, Utf8PathBuf};
+    /// use std::path::Path;
+    ///
+    /// let utf8_path_buf = Utf8PathBuf::from("foo.txt");
+    /// let boxed_utf8_path = utf8_path_buf.into_boxed_path();
+    /// let boxed_std_path = boxed_utf8_path.into_std_boxed_path();
+    /// assert_eq!(boxed_std_path.to_str(), Some("foo.txt"));
+    /// ```
     #[must_use = "`self` will be dropped if the result is not used"]
     #[inline]
     pub fn into_std_boxed_path(self: Box<Utf8Path>) -> Box<Path> {
         let ptr = Box::into_raw(self) as *mut Path;
         // SAFETY:
-        // * self is valid UTF-8
         // * ptr was constructed by consuming self so it represents an owned path.
         // * Utf8Path is marked as #[repr(transparent)] so the conversion from a *mut Utf8Path to a
         //   *mut Path is valid.
