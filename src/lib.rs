@@ -1683,14 +1683,20 @@ impl Utf8Path {
     #[must_use = "`self` will be dropped if the result is not used"]
     #[inline]
     pub fn into_path_buf(self: Box<Utf8Path>) -> Utf8PathBuf {
+        Utf8PathBuf(self.into_std_boxed_path().into_path_buf())
+    }
+
+    /// Converts a [`Box<Utf8Path>`] into a [`Box<Path>`] without copying or allocating.
+    #[must_use = "`self` will be dropped if the result is not used"]
+    #[inline]
+    pub fn into_std_boxed_path(self: Box<Utf8Path>) -> Box<Path> {
         let ptr = Box::into_raw(self) as *mut Path;
         // SAFETY:
         // * self is valid UTF-8
         // * ptr was constructed by consuming self so it represents an owned path.
         // * Utf8Path is marked as #[repr(transparent)] so the conversion from a *mut Utf8Path to a
         //   *mut Path is valid.
-        let boxed_path = unsafe { Box::from_raw(ptr) };
-        Utf8PathBuf(boxed_path.into_path_buf())
+        unsafe { Box::from_raw(ptr) }
     }
 
     // invariant: Path must be guaranteed to be utf-8 data
@@ -2605,6 +2611,12 @@ impl<'a> From<&'a Utf8Path> for Cow<'a, Path> {
 impl From<Box<Utf8Path>> for Utf8PathBuf {
     fn from(path: Box<Utf8Path>) -> Utf8PathBuf {
         path.into_path_buf()
+    }
+}
+
+impl From<Box<Utf8Path>> for Box<Path> {
+    fn from(path: Box<Utf8Path>) -> Box<Path> {
+        path.into_std_boxed_path()
     }
 }
 
