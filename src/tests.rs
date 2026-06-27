@@ -58,6 +58,37 @@ fn test_boxed_into() {
     assert_eq!(from_boxed, utf8_path_buf);
 }
 
+#[test]
+fn test_boxed_from_path() {
+    // Exercise Box<Path> -> Box<Utf8Path> (mostly intended for Miri).
+    let path: Box<Path> = Path::new("test/path").into();
+
+    let utf8 = Utf8Path::from_boxed_path(path.clone()).expect("valid UTF-8 succeeds");
+    assert_eq!(&*utf8, Utf8Path::new("test/path"));
+
+    // This exercises the TryFrom impl.
+    let utf8: Box<Utf8Path> = path.try_into().expect("valid UTF-8 succeeds");
+    assert_eq!(&*utf8, Utf8Path::new("test/path"));
+}
+
+#[cfg(unix)]
+#[test]
+fn test_boxed_from_path_non_utf8() {
+    use std::{ffi::OsStr, os::unix::ffi::OsStrExt};
+
+    let non_unicode = OsStr::from_bytes(b"\xFF\xFF\xFF");
+    let path: Box<Path> = Path::new(non_unicode).into();
+
+    // from_boxed_path returns the original Box<Path> on failure.
+    let err = Utf8Path::from_boxed_path(path.clone()).expect_err("non-UTF-8 fails");
+    assert_eq!(&*err, &*path);
+
+    // TryFrom surfaces a FromBoxedPathError that still owns the original path.
+    let err = <Box<Utf8Path>>::try_from(path.clone()).expect_err("non-UTF-8 fails");
+    assert_eq!(err.as_path(), &*path);
+    assert_eq!(err.into_boxed_path(), path);
+}
+
 fn test_into<T, U>(orig: T)
 where
     T: Into<U>,
