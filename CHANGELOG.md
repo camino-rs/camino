@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## Unreleased - ReleaseDate
 
+## [1.2.4] - 2026-06-27
+
 ### Added
 
 Methods to convert between `Box<Utf8Path>` and `Box<Path>`:
@@ -216,6 +218,7 @@ Thanks to [BenjaminBrienen](https://github.com/BenjaminBrienen) for your first c
 Initial release.
 
 <!-- next-url -->
+[1.2.4]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.4
 [1.2.3]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.3
 [1.2.2]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.2
 [1.2.1]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.1
