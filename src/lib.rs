@@ -1686,14 +1686,10 @@ impl Utf8Path {
         Utf8PathBuf(self.into_std_boxed_path().into_path_buf())
     }
 
-    // NOTE: `From<Box<Utf8Path>> for Box<Path>` is available, but doesn't render
-    // due to a rustdoc bug similar to
-    // https://github.com/rust-lang/rust/issues/82465. That's why we don't link it in the doc
-    // comment below.
     /// Converts a [`Box<Utf8Path>`] into a [`Box<Path>`] without copying or allocating.
     ///
-    /// This is equivalent to the `From<Box<Utf8Path>> for Box<Path>` implementation,
-    /// but may aid in type inference.
+    /// This is equivalent to the [`From<Box<Utf8Path>> for Box<Path>`][from]
+    /// implementation, but may aid in type inference.
     ///
     /// # Examples
     ///
@@ -1710,6 +1706,8 @@ impl Utf8Path {
     /// let new_boxed_utf8_path = Utf8Path::from_boxed_path(boxed_std_path).unwrap();
     /// assert_eq!(&*new_boxed_utf8_path, Utf8Path::new("foo.txt"));
     /// ```
+    ///
+    /// [from]: #impl-From<Box<Utf8Path>>-for-Box<Path>
     #[must_use = "`self` will be dropped if the result is not used"]
     #[inline]
     pub fn into_std_boxed_path(self: Box<Utf8Path>) -> Box<Path> {
