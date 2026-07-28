@@ -2,16 +2,27 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 name: Docs
 
+permissions:
+  contents: read
+
+# Allow an in-flight deploy to finish rather than cancelling it, since a
+# cancelled deployment can leave the Pages site in a partial state.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  docs:
-    name: Build and deploy documentation
-    concurrency: ci-${{ github.ref }}
+  build:
+    name: Build documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build rustdoc
@@ -24,9 +35,21 @@ jobs:
           rm -rf target/gh-pages
           mkdir target/gh-pages
           mv target/doc target/gh-pages/rustdoc
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@releases/v4
+      - uses: actions/upload-pages-artifact@v5
         with:
-          branch: gh-pages
-          folder: target/gh-pages
-          single-commit: true
+          path: target/gh-pages
+
+  deploy:
+    name: Deploy documentation
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
