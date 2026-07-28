@@ -19,7 +19,15 @@ authors = [
     "Rain <rain@sunshowers.io>",
 ]
 edition = "2021"
-exclude = [".cargo/**/*", ".github/**/*"]
+include = [
+    "/build.rs",
+    "/src/**/*.rs",
+    "/tests/**/*.rs",
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/README.md",
+]
 
 [package.metadata.docs.rs]
 all-features = true
