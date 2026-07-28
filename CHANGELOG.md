@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## Unreleased - ReleaseDate
 
+## [1.2.5] - 2026-07-28
+
 ### Fixed
 
 Removed unnecessary files from the package.
@@ -222,6 +224,7 @@ Thanks to [BenjaminBrienen](https://github.com/BenjaminBrienen) for your first c
 Initial release.
 
 <!-- next-url -->
+[1.2.5]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.5
 [1.2.4]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.4
 [1.2.3]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.3
 [1.2.2]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.2
