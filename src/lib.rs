@@ -1068,8 +1068,8 @@ impl Utf8Path {
     /// ```
     #[inline]
     #[must_use]
-    pub fn ends_with(&self, base: impl AsRef<Path>) -> bool {
-        self.0.ends_with(base)
+    pub fn ends_with(&self, child: impl AsRef<Path>) -> bool {
+        self.0.ends_with(child)
     }
 
     /// Extracts the stem (non-extension) portion of [`self.file_name`].
