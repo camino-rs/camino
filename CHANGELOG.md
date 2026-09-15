@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## Unreleased - ReleaseDate
 
+## [1.2.6] - 2026-09-15
+
 ### Fixed
 
 - The `Utf8Path::ends_with` parameter is now called `child` to match `std::path::Path::ends_with`. Thanks [hxperl](https://github.com/hxperl) for your first contribution!
@@ -228,6 +230,7 @@ Thanks to [BenjaminBrienen](https://github.com/BenjaminBrienen) for your first c
 Initial release.
 
 <!-- next-url -->
+[1.2.6]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.6
 [1.2.5]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.5
 [1.2.4]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.4
 [1.2.3]: https://github.com/camino-rs/camino/releases/tag/camino-1.2.3
