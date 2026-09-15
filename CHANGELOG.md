@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## Unreleased - ReleaseDate
 
+### Fixed
+
+- The `Utf8Path::ends_with` parameter is now called `child` to match `std::path::Path::ends_with`. Thanks [hxperl](https://github.com/hxperl) for your first contribution!
+
 ## [1.2.5] - 2026-07-28
 
 ### Fixed
