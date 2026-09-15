@@ -1048,7 +1048,7 @@ impl Utf8Path {
         self.0.starts_with(base)
     }
 
-    /// Determines whether `child` is a suffix of `self`.
+    /// Determines whether `base` is a suffix of `self`.
     ///
     /// Only considers whole path components to match.
     ///
